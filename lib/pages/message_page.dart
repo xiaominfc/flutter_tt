@@ -32,11 +32,14 @@ class _MessagePageState extends State<MessagePage> {
   @override
   void initState() {
     super.initState();
-    _onRefresh().then((result) {
-      _controller.jumpTo(100000);
-      // _controller.animateTo(MediaQuery.of(context).size.height,
-      //       duration: Duration(milliseconds: 300), curve: Curves.linear);
-    });
+    _onRefresh().then((result) {});
+  }
+
+  scrollEnd() {
+    print("=================scroll to bottom:" +
+        _controller.position.maxScrollExtent.toString());
+    _controller.animateTo(_controller.position.maxScrollExtent + 1000000,
+        duration: Duration(milliseconds: 500), curve: Curves.easeIn);
   }
 
   Future<Null> _onRefresh() async {
@@ -48,12 +51,21 @@ class _MessagePageState extends State<MessagePage> {
         .loadMessagesByServer(this.session.sessionId, this.session.sessionType,
             beginMsgId: msgBeginId)
         .then((msgs) {
+      int size = allMsgs.length;
       allMsgs.insertAll(0, msgs.reversed);
       setState(() {
-        
+        if (size == 0) {
+          scrollEnd();
+        }
       });
     });
     return;
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   Widget msgItem(MessageEntry msg, UserEntry fromUser) {
@@ -82,7 +94,6 @@ class _MessagePageState extends State<MessagePage> {
     if (text == '[图片]') {
       String url = ascii.decode(msg.msgData);
       url = url.substring(10, url.length - 9);
-      print(url);
       return Card(
           child: Container(
               child: Image(
@@ -143,12 +154,17 @@ class _MessagePageState extends State<MessagePage> {
   }
 
   void _handleSubmit(String text) {
-    imHelper.sendTextMsg(text, session.sessionId, session.sessionType).then((result){
+    imHelper
+        .sendTextMsg(text, session.sessionId, session.sessionType)
+        .then((result) {
       print(result);
       textEditingController.clear();
-      if(result != null) {
+      if (result != null) {
+        allMsgs.add(result);
+        _controller.animateTo(_controller.position.maxScrollExtent,
+            duration: Duration(milliseconds: 1000), curve: Curves.easeOut);
         setState(() {
-          allMsgs.add(result); 
+          scrollEnd();
           //_controller.jumpTo(100000);
         });
       }
@@ -182,6 +198,10 @@ class _MessagePageState extends State<MessagePage> {
     );
   }
 
+  _hideBottomLayout(){
+    FocusScope.of(context).requestFocus(new FocusNode());
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -191,15 +211,18 @@ class _MessagePageState extends State<MessagePage> {
             onRefresh: _onRefresh,
             child: Column(children: <Widget>[
               Flexible(
-                  child: ListView.builder(
-                controller: _controller,
-                itemCount: allMsgs == null ? 0 : allMsgs.length,
-                itemBuilder: (context, position) {
-                  MessageEntry msg = allMsgs[position];
-                  UserEntry fromUser =
-                      IMHelper.defaultInstance().userMap[msg.fromId];
-                  return msgItem(msg, fromUser);
-                },
+                  child: GestureDetector(
+                onTap: _hideBottomLayout,
+                child: ListView.builder(
+                  controller: _controller,
+                  itemCount: allMsgs == null ? 0 : allMsgs.length,
+                  itemBuilder: (context, position) {
+                    MessageEntry msg = allMsgs[position];
+                    UserEntry fromUser =
+                        IMHelper.defaultInstance().userMap[msg.fromId];
+                    return msgItem(msg, fromUser);
+                  },
+                ),
               )),
               Divider(
                 height: 1.0,
