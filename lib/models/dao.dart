@@ -122,6 +122,7 @@ class IMMsgSendStatus {
 
 class MessageEntry extends BaseItem {
   int fromId;
+  int sessionId;
   int msgId;
   String msgText;
   int time;
@@ -130,7 +131,7 @@ class MessageEntry extends BaseItem {
 
   int sendStatus = IMMsgSendStatus.Ok;
 
-  MessageEntry({this.msgId,this.fromId,this.msgData,this.time,this.msgType});
+  MessageEntry({this.msgId,this.fromId,this.msgData,this.sessionId,this.time,this.msgType});
 
   @override
   fromMap(Map<String, dynamic> map) {
@@ -139,7 +140,7 @@ class MessageEntry extends BaseItem {
 
   @override
   Map<String, dynamic> toMap() {
-    return {'fromId':fromId, 'msgId':msgId, 'msgText':msgText, 'time':time};
+    return {'fromId':fromId, 'msgId':msgId, 'msgText':msgText, 'time':time,'sessionId':sessionId};
   }
 }
 

@@ -20,6 +20,7 @@ class MessagePage extends StatefulWidget {
 }
 
 class _MessagePageState extends State<MessagePage> {
+  //EventBus eventBus = EventBus(sync:true);
   final IMHelper imHelper = IMHelper();
   final TextEditingController textEditingController =
       new TextEditingController();
@@ -32,7 +33,19 @@ class _MessagePageState extends State<MessagePage> {
   @override
   void initState() {
     super.initState();
-    _onRefresh().then((result) {});
+    _onRefresh().then((result) {
+
+    });
+    imHelper.eventBus.on<NewMsgEvent>().listen((event) {
+      print(event.msg);
+      print(session);
+      if(event.msg.sessionId == session.sessionId) {
+        allMsgs.add(event.msg);
+        setState(() {
+          scrollEnd();
+        });
+      }
+    });
   }
 
   scrollEnd() {

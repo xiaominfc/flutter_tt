@@ -5,10 +5,19 @@ import '../teamtalk_dart_lib/pb/IM.BaseDefine.pb.dart';
 import '../teamtalk_dart_lib/pb/IM.Message.pb.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:event_bus/event_bus.dart';
+
+
+class NewMsgEvent{
+  MessageEntry msg;
+  NewMsgEvent(this.msg);
+}
+
 
 class IMHelper {
   TTSecurity security = TTSecurity.DefaultSecurity();
   static IMHelper _instance;
+  EventBus eventBus = EventBus(sync:true);
 
   static IMHelper defaultInstance() {
     if (_instance == null) {
@@ -57,6 +66,12 @@ class IMHelper {
   }
 
   initData() async {
+    imClient.registerNewMsgHandler((result){
+      MessageEntry messageEntry = new MessageEntry(msgId: result.msgId,fromId: result.fromUserId,sessionId: result.fromUserId,msgData: result.msgData,msgType: result.msgType.value);
+      messageEntry.msgText = decodeMsgData(result.msgData, messageEntry.msgType);
+      eventBus.fire(NewMsgEvent(messageEntry));
+      
+    });
     await loadLocalFriends();
     await loadFriendsFromServer();
     await loadAllGroupsFromServer();
