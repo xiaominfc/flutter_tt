@@ -114,6 +114,15 @@ class _MessagePageState extends State<MessagePage> {
             )));
   }
 
+  reSendMsg(MessageEntry msg){
+    //还没实现 只是测试
+    msg.sendStatus = IMMsgSendStatus.Ok;
+    setState(() {
+      
+    });
+    //
+  }
+
   Widget rightAvatarItem(MessageEntry msg, UserEntry fromUser) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -121,11 +130,23 @@ class _MessagePageState extends State<MessagePage> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
+          
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
+              
               Text(fromUser.name, style: Theme.of(context).textTheme.subhead),
-              _msgContentBuild(msg)
+              Row(children: <Widget>[
+                msg.sendStatus == IMMsgSendStatus.Sending
+                  ? CircularProgressIndicator(
+                      strokeWidth: 1.0,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black12),
+                    )
+                  : (msg.sendStatus == IMMsgSendStatus.Failed?IconButton(icon:Icon(Icons.error,color: Colors.red,),onPressed: (){
+                    reSendMsg(msg);
+                  },):Center()),
+                _msgContentBuild(msg)
+              ],)
             ],
           ),
           _avatar(fromUser, EdgeInsets.only(left: 8.0, top: 8.0))
@@ -154,20 +175,27 @@ class _MessagePageState extends State<MessagePage> {
   }
 
   void _handleSubmit(String text) {
+    textEditingController.clear();
+    MessageEntry messageEntry =
+        imHelper.buildTextMsg(text, session.sessionId, session.sessionType);
+    messageEntry.sendStatus = IMMsgSendStatus.Sending;
+    allMsgs.add(messageEntry);
+    setState(() {
+      scrollEnd();
+    });
+
     imHelper
         .sendTextMsg(text, session.sessionId, session.sessionType)
         .then((result) {
-      print(result);
-      textEditingController.clear();
       if (result != null) {
-        allMsgs.add(result);
-        _controller.animateTo(_controller.position.maxScrollExtent,
-            duration: Duration(milliseconds: 1000), curve: Curves.easeOut);
-        setState(() {
-          scrollEnd();
-          //_controller.jumpTo(100000);
-        });
+        messageEntry.msgId = result.msgId;
+        messageEntry.sendStatus = IMMsgSendStatus.Ok; 
+      }else {
+        messageEntry.sendStatus = IMMsgSendStatus.Failed;
       }
+      setState(() {
+          
+      });
     });
   }
 
@@ -198,7 +226,7 @@ class _MessagePageState extends State<MessagePage> {
     );
   }
 
-  _hideBottomLayout(){
+  _hideBottomLayout() {
     FocusScope.of(context).requestFocus(new FocusNode());
   }
 

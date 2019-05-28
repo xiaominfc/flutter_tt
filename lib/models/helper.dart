@@ -210,6 +210,17 @@ class IMHelper {
     return sessions;
   }
 
+  buildTextMsg(String text,int sessionId,int sessionType) {
+    int msgType = IMMsgType.MSG_TYPE_GROUP_TEXT;
+    if(sessionType == IMSeesionType.Person) {
+      msgType = IMMsgType.MSG_TYPE_SINGLE_TEXT;
+    }
+    MessageEntry msg = MessageEntry(msgId: 0, msgData: utf8.encode(text), fromId:imClient.userID(),msgType: msgType);
+    return msg;
+  }
+
+  
+
   sendTextMsg(String text,int sessionId,int sessionType) async{
     IMMsgDataAck result;
     int msgType = IMMsgType.MSG_TYPE_GROUP_TEXT;

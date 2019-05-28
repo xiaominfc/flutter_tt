@@ -112,6 +112,14 @@ class IMMsgType {
   static int MSG_TYPE_GROUP_AUDIO = 18;
 }
 
+
+
+class IMMsgSendStatus {
+  static int Sending = 1;
+  static int Ok = 2;
+  static int Failed = 0;
+}
+
 class MessageEntry extends BaseItem {
   int fromId;
   int msgId;
@@ -119,6 +127,8 @@ class MessageEntry extends BaseItem {
   int time;
   List msgData;
   int msgType;
+
+  int sendStatus = IMMsgSendStatus.Ok;
 
   MessageEntry({this.msgId,this.fromId,this.msgData,this.time,this.msgType});
 
