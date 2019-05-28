@@ -216,8 +216,9 @@ class IMHelper {
     if(sessionType == IMSeesionType.Person) {
       result =  await imClient.sendTextMsg(text, sessionId);
       msgType = IMMsgType.MSG_TYPE_SINGLE_TEXT;
+    }else {
+      result =  await imClient.sendGroupTextMsg(text, sessionId);
     }
-    result =  await imClient.sendGroupTextMsg(text, sessionId);
     if(result != null) {
       MessageEntry msg = MessageEntry(msgId: result.msgId, msgData: utf8.encode(text), fromId:result.userId,msgType: msgType);
     //print(result);

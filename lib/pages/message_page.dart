@@ -145,9 +145,11 @@ class _MessagePageState extends State<MessagePage> {
   void _handleSubmit(String text) {
     imHelper.sendTextMsg(text, session.sessionId, session.sessionType).then((result){
       print(result);
+      textEditingController.clear();
       if(result != null) {
         setState(() {
-          allMsgs.add(result);  
+          allMsgs.add(result); 
+          //_controller.jumpTo(100000);
         });
       }
     });
