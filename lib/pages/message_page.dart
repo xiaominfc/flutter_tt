@@ -101,8 +101,9 @@ class _MessagePageState extends State<MessagePage> {
 
   _avatar(UserEntry fromUser, edge) {
     return Container(
+      width: 36,
       margin: edge,
-      child: CircleAvatar(
+      child: ClipOval(
         child: FadeInImage(
           image: NetworkImage(fromUser.avatar),
           placeholder: AssetImage('images/avatar_default.png'),
@@ -110,14 +111,16 @@ class _MessagePageState extends State<MessagePage> {
       ),
     );
   }
+  
 
   _msgContentBuild(MessageEntry msg) {
     double maxWidth = MediaQuery.of(context).size.width * 0.7;
     var text = imHelper.decodeMsgData(msg.msgData, msg.msgType);
 
     if (text == '[图片]') {
-      String url = ascii.decode(msg.msgData);
+      String url = imHelper.decodeToImage(msg.msgData);
       url = url.substring(10, url.length - 9);
+      print("url:$url");
       return Card(
           child: Container(
               child: Image(

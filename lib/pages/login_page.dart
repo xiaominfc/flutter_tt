@@ -10,6 +10,7 @@ import '../utils/utils.dart';
 import 'home_page.dart';
 import '../teamtalk_dart_lib/src/client.dart';
 import '../models/helper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -30,17 +31,40 @@ class _LoginPageState extends State<LoginPage> {
   final usernameTextFieldController = TextEditingController(text: "xiaominfc");
   final passwordTextFieldController = TextEditingController(text: "123456");
 
-  showHome() {
+  
+
+  @override
+  initState(){
+    super.initState();
+    _initLastUser();
+  }
+
+  _initLastUser() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var name = prefs.getString("login_username");
+    var password = prefs.getString("login_password");
+    print(name);
+    print(password);
+    if(name != null && password != null) {
+      usernameTextFieldController.text = name;
+      passwordTextFieldController.text = password;
+      setState(() {
+        
+      });
+    }
+  }
+
+  _showHome() {
     navigatePage(context, new HomePage());
   }
 
-  loginFailed() {
+  _loginFailed() {
     setState(() {
       logining = false;
     });
   }
 
-  doLogin() {
+  _doLogin(){
     if (logining) {
       return;
     }
@@ -56,19 +80,22 @@ class _LoginPageState extends State<LoginPage> {
         //    username, password, "http://im.jingnongfucang.cn:8080/msg_server");
     imClient.requesetMsgSever().then((serverInfo) {
       if (serverInfo == null) {
-        loginFailed();
+        _loginFailed();
         return;
       }
       imClient
           .doLogin(serverInfo['priorIP'], int.parse(serverInfo['port']))
-          .then((result) {
+          .then((result) async {
         if (result) {
+          SharedPreferences prefs = await SharedPreferences.getInstance();
+          prefs.setString('login_username', username);
+          prefs.setString('login_password', password);
           IMHelper.defaultInstance().initData().then((result){
-            showHome();
+            _showHome();
           });
         } else {
           print("login failed!");
-          loginFailed();
+          _loginFailed();
         }
       });
     });
@@ -103,9 +130,7 @@ class _LoginPageState extends State<LoginPage> {
       child: MaterialButton(
         minWidth: MediaQuery.of(context).size.width,
         padding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
-        onPressed: () {
-          doLogin();
-        },
+        onPressed: _doLogin,
         child: Text("登录",
             textAlign: TextAlign.center,
             style: style.copyWith(

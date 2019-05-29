@@ -53,6 +53,10 @@ class DatabaseHelper {
     _onCreate(db, newVersion);
   }
 
+  resetDb()async{
+    await _onCreate(_database, _databaseVersion);
+  }
+
   
 
 

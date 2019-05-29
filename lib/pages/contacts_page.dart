@@ -48,7 +48,8 @@ class _ContactsPageState extends State<ContactsPage> {
                         children: <Widget>[
                           new Container(
                             margin: const EdgeInsets.only(right: 16.0),
-                            child: new CircleAvatar(
+                            width: 36,
+                            child: ClipOval(
                               child: FadeInImage(
                                 image: NetworkImage(user.avatar),
                                 placeholder:

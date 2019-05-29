@@ -53,11 +53,10 @@ class _ChatPageState extends State<ChatPage> {
             itemBuilder: (context, position) {
               SessionEntry sessionEntry = _sessions[position];
               return Column(children: <Widget>[
-                
                 GestureDetector(
                   onTap: () => _onTap(position),
                   child: ListTile(
-                    leading: CircleAvatar(
+                    leading: ClipOval(
                       child: FadeInImage(
                         image: NetworkImage(sessionEntry.avatar),
                         placeholder: AssetImage('images/avatar_default.png'),

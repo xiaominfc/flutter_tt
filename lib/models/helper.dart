@@ -1,4 +1,5 @@
 import 'package:flutter_tt/models/dao.dart';
+import 'package:flutter_tt/models/database_helper.dart';
 import '../teamtalk_dart_lib/src/client.dart';
 import '../teamtalk_dart_lib/src/security.dart';
 import '../teamtalk_dart_lib/pb/IM.BaseDefine.pb.dart';
@@ -66,8 +67,16 @@ class IMHelper {
   }
 
   initData() async {
+    const LASTUSERIDKEY = "lastUserId";
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    int lastUserId = prefs.getInt(LASTUSERIDKEY);
+    if(lastUserId == null || lastUserId != imClient.userID()) {
+      DatabaseHelper.instance.resetDb();
+      prefs.setInt(LASTUSERIDKEY, imClient.userID());
+    }
+
     imClient.registerNewMsgHandler((result){
-      MessageEntry messageEntry = new MessageEntry(msgId: result.msgId,fromId: result.fromUserId,sessionId: result.fromUserId,msgData: result.msgData,msgType: result.msgType.value);
+      MessageEntry messageEntry = new MessageEntry(msgId: result.msgId,fromId: result.fromUserId,sessionId: result.fromUserId,msgData: result.msgData,msgType: result.msgType.value,time: result.createTime);
       if(result.msgType == MsgType.MSG_TYPE_GROUP_AUDIO || result.msgType == MsgType.MSG_TYPE_GROUP_TEXT) {
         messageEntry.sessionId = result.toSessionId;
       }
@@ -158,6 +167,20 @@ class IMHelper {
     return msgs;
   }
 
+
+  decodeToImage(msgData) {
+    try {
+      var tmplastMsg = utf8.decode(msgData);
+      if(tmplastMsg.length > 10 && tmplastMsg.startsWith("&\$#@~^@[{:")) {
+        return tmplastMsg;
+      }
+      return security.decryptText(tmplastMsg);
+    }catch(e) {
+
+    }
+    return "";
+  }
+
   decodeMsgData(msgData, int msgType) {
     String lastMsg = '';
     try {
@@ -169,6 +192,9 @@ class IMHelper {
         lastMsg = '[语音]';
       } else {
         lastMsg = security.decryptText(tmplastMsg);
+        if(lastMsg.length > 10 && lastMsg.startsWith("&\$#@~^@[{:")) {
+          lastMsg = '[图片]';
+        }
       }
     } catch (e) {
       return "";
