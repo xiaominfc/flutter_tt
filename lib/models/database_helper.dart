@@ -16,7 +16,7 @@ import 'package:path_provider/path_provider.dart';
 class DatabaseHelper {
 
   static final _databaseName = "flutter_tt.db";
-  static final _databaseVersion = 2;
+  static final _databaseVersion = 1;
   static Database _database;
 
   DatabaseHelper._internal();
@@ -40,21 +40,21 @@ class DatabaseHelper {
   }
 
   _onCreate(Database db, int version) async{
-    UserDao().initTable(db, version);
-    GroupDao().initTable(db, version);
+    await UserDao().initTable(db, version);
+    await GroupDao().initTable(db, version);
   }
 
 
   _onUpgrade(Database db,int oldVersion, int newVersion) async{
-    _onCreate(db, newVersion);
+    await _onCreate(db, newVersion);
   }
 
   _onDowngrade(Database db,int oldVersion, int newVersion) async{
-    _onCreate(db, newVersion);
+    await _onCreate(db, newVersion);
   }
 
   resetDb()async{
-    await _onCreate(_database, _databaseVersion);
+    await _onCreate(await database, _databaseVersion);
   }
 
   

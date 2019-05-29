@@ -49,7 +49,7 @@ class UserDao extends PrimaryDao<UserEntry> {
 
   @override
   String tableName() {
-    return 'user';
+    return 'im_user';
   }
 
   @override
@@ -60,7 +60,7 @@ class UserDao extends PrimaryDao<UserEntry> {
   @override
   initTable(Database db, int version) async{
     dropTable(db, version);
-    await db.execute('CREATE TABLE user (id INTEGER PRIMARY KEY, name TEXT, avatar TEXT)');
+    await db.execute('CREATE TABLE '+ tableName() + ' (id INTEGER PRIMARY KEY, name TEXT, avatar TEXT)');
   }
 }
 
@@ -101,12 +101,12 @@ class GroupDao extends PrimaryDao<GroupEntry> {
   @override
   initTable(Database db, int version) async{
     dropTable(db, version);
-    await db.execute('CREATE TABLE imgroup (id INTEGER PRIMARY KEY, name TEXT, avatar TEXT, version INTEGER, shieldStatus INTEGER)');
+    await db.execute('CREATE TABLE '+tableName() + ' (id INTEGER PRIMARY KEY, name TEXT, avatar TEXT, version INTEGER, shieldStatus INTEGER)');
   }
 
   @override
   String tableName() {
-    return "imgroup";
+    return "im_group";
   }
 }
 
