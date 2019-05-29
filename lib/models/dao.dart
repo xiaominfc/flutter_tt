@@ -140,7 +140,7 @@ class MessageEntry extends BaseItem {
 
   @override
   Map<String, dynamic> toMap() {
-    return {'fromId':fromId, 'msgId':msgId, 'msgText':msgText, 'time':time,'sessionId':sessionId};
+    return {'fromId':fromId, 'msgId':msgId, 'msgText':msgText, 'time':time,'sessionId':sessionId,'msgType':msgType};
   }
 }
 

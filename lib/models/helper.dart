@@ -67,7 +67,12 @@ class IMHelper {
 
   initData() async {
     imClient.registerNewMsgHandler((result){
+      print(result);
       MessageEntry messageEntry = new MessageEntry(msgId: result.msgId,fromId: result.fromUserId,sessionId: result.fromUserId,msgData: result.msgData,msgType: result.msgType.value);
+      if(result.msgType == MsgType.MSG_TYPE_GROUP_AUDIO || result.msgType == MsgType.MSG_TYPE_GROUP_TEXT) {
+        messageEntry.sessionId = result.toSessionId;
+      }
+      print(messageEntry);
       messageEntry.msgText = decodeMsgData(result.msgData, messageEntry.msgType);
       eventBus.fire(NewMsgEvent(messageEntry));
       
