@@ -1,3 +1,9 @@
+//
+// dao.dart
+// Copyright (C) 2019 xiaominfc(武汉鸣鸾信息科技有限公司) <xiaominfc@gmail.com>
+//
+// Distributed under terms of the MIT license.
+//
 import 'package:sqflite/sqlite_api.dart';
 
 import './database_helper.dart';

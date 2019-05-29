@@ -15,6 +15,15 @@ class NewMsgEvent{
 }
 
 
+//
+// helper.dart
+// Copyright (C) 2019 xiaominfc(武汉鸣鸾信息科技有限公司) <xiaominfc@gmail.com>
+//
+// Distributed under terms of the MIT license.
+//
+
+
+
 class IMHelper {
   TTSecurity security = TTSecurity.DefaultSecurity();
   static IMHelper _instance;
