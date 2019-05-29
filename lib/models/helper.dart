@@ -67,12 +67,10 @@ class IMHelper {
 
   initData() async {
     imClient.registerNewMsgHandler((result){
-      print(result);
       MessageEntry messageEntry = new MessageEntry(msgId: result.msgId,fromId: result.fromUserId,sessionId: result.fromUserId,msgData: result.msgData,msgType: result.msgType.value);
       if(result.msgType == MsgType.MSG_TYPE_GROUP_AUDIO || result.msgType == MsgType.MSG_TYPE_GROUP_TEXT) {
         messageEntry.sessionId = result.toSessionId;
       }
-      print(messageEntry);
       messageEntry.msgText = decodeMsgData(result.msgData, messageEntry.msgType);
       eventBus.fire(NewMsgEvent(messageEntry));
       
@@ -163,7 +161,7 @@ class IMHelper {
   decodeMsgData(msgData, int msgType) {
     String lastMsg = '';
     try {
-      var tmplastMsg = ascii.decode(msgData);
+      var tmplastMsg = utf8.decode(msgData);
       if (tmplastMsg.length > 10 && tmplastMsg.startsWith("&\$#@~^@[{:")) {
         lastMsg = '[图片]';
       } else if (msgType == MsgType.MSG_TYPE_GROUP_AUDIO.value ||
@@ -173,12 +171,7 @@ class IMHelper {
         lastMsg = security.decryptText(tmplastMsg);
       }
     } catch (e) {
-      print(e);
-      try {
-        lastMsg = utf8.decode(msgData);
-      } catch (e1) {
-        print(e1);
-      }
+      return "";
     }
     return lastMsg;
   }
@@ -235,7 +228,7 @@ class IMHelper {
     if(sessionType == IMSeesionType.Person) {
       msgType = IMMsgType.MSG_TYPE_SINGLE_TEXT;
     }
-    MessageEntry msg = MessageEntry(msgId: 0, msgData: utf8.encode(text), fromId:imClient.userID(),msgType: msgType);
+    MessageEntry msg = MessageEntry(msgId: 0, msgData: utf8.encode(security.encryptText(text)), fromId:imClient.userID(),msgType: msgType);
     return msg;
   }
 

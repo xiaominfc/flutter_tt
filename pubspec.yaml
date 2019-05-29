@@ -31,6 +31,7 @@ dependencies:
   path_provider: ^0.4.1
   shared_preferences: ^0.5.2
   event_bus: ^1.1.0
+  toast: ^0.1.4
 
 dev_dependencies:
   flutter_test:

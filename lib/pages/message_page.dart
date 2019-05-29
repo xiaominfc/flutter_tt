@@ -5,11 +5,14 @@
 // Distributed under terms of the MIT license.
 //
 
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import '../models/dao.dart';
 import '../models/helper.dart';
+import 'package:event_bus/event_bus.dart';
+import 'package:toast/toast.dart';
 
 class MessagePage extends StatefulWidget {
   final session;
@@ -20,39 +23,44 @@ class MessagePage extends StatefulWidget {
 }
 
 class _MessagePageState extends State<MessagePage> {
-  //EventBus eventBus = EventBus(sync:true);
+  EventBus eventBus = EventBus(sync: true);
   final IMHelper imHelper = IMHelper();
   final TextEditingController textEditingController =
       new TextEditingController();
   final ScrollController _controller = ScrollController();
   SessionEntry session;
   List<MessageEntry> allMsgs = List();
-
+  StreamSubscription subscription;
   _MessagePageState(this.session);
+
+  void onEvent(event) async {
+    if (mounted && event.msg.sessionId == session.sessionId) {
+      allMsgs.add(event.msg);
+      setState(() {
+        
+      });
+      scrollEnd(10);
+    }
+  }
 
   @override
   void initState() {
     super.initState();
-    _onRefresh().then((result) {
-
-    });
-    imHelper.eventBus.on<NewMsgEvent>().listen((event) {
-      print(event.msg);
-      print(session);
-      if(event.msg.sessionId == session.sessionId) {
-        allMsgs.add(event.msg);
-        setState(() {
-          scrollEnd();
-        });
-      }
+    _onRefresh().then((result) {});
+    subscription = imHelper.eventBus.on<NewMsgEvent>().listen((event) {
+      onEvent(event);
     });
   }
 
-  scrollEnd() {
-    print("=================scroll to bottom:" +
-        _controller.position.maxScrollExtent.toString());
-    _controller.animateTo(_controller.position.maxScrollExtent + 1000000,
-        duration: Duration(milliseconds: 500), curve: Curves.easeIn);
+  scrollEnd([animationTime=500]) {
+    double scrollValue = _controller.position.maxScrollExtent;
+    if (scrollValue < 10) {
+      scrollValue = 1000000;
+    }
+
+    //_controller.jumpTo(scrollValue);
+    _controller.animateTo(scrollValue,
+        duration: Duration(milliseconds: animationTime), curve: Curves.easeIn);
   }
 
   Future<Null> _onRefresh() async {
@@ -64,21 +72,24 @@ class _MessagePageState extends State<MessagePage> {
         .loadMessagesByServer(this.session.sessionId, this.session.sessionType,
             beginMsgId: msgBeginId)
         .then((msgs) {
-      int size = allMsgs.length;
-      allMsgs.insertAll(0, msgs.reversed);
-      setState(() {
-        if (size == 0) {
-          scrollEnd();
-        }
-      });
+      if (msgs != null && msgs.length > 0) {
+        int size = allMsgs.length;
+        allMsgs.insertAll(0, msgs.reversed);
+        setState(() {
+          if (size == 0) {
+            scrollEnd();
+          }
+        });
+      }
     });
     return;
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    //_controller.dispose();
     super.dispose();
+    subscription.cancel();
   }
 
   Widget msgItem(MessageEntry msg, UserEntry fromUser) {
@@ -127,12 +138,10 @@ class _MessagePageState extends State<MessagePage> {
             )));
   }
 
-  reSendMsg(MessageEntry msg){
+  reSendMsg(MessageEntry msg) {
     //还没实现 只是测试
     msg.sendStatus = IMMsgSendStatus.Ok;
-    setState(() {
-      
-    });
+    setState(() {});
     //
   }
 
@@ -143,23 +152,32 @@ class _MessagePageState extends State<MessagePage> {
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: <Widget>[
-              
               Text(fromUser.name, style: Theme.of(context).textTheme.subhead),
-              Row(children: <Widget>[
-                msg.sendStatus == IMMsgSendStatus.Sending
-                  ? CircularProgressIndicator(
-                      strokeWidth: 1.0,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black12),
-                    )
-                  : (msg.sendStatus == IMMsgSendStatus.Failed?IconButton(icon:Icon(Icons.error,color: Colors.red,),onPressed: (){
-                    reSendMsg(msg);
-                  },):Center()),
-                _msgContentBuild(msg)
-              ],)
+              Row(
+                children: <Widget>[
+                  msg.sendStatus == IMMsgSendStatus.Sending
+                      ? CircularProgressIndicator(
+                          strokeWidth: 1.0,
+                          valueColor:
+                              AlwaysStoppedAnimation<Color>(Colors.black12),
+                        )
+                      : (msg.sendStatus == IMMsgSendStatus.Failed
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.error,
+                                color: Colors.red,
+                              ),
+                              onPressed: () {
+                                reSendMsg(msg);
+                              },
+                            )
+                          : Center()),
+                  _msgContentBuild(msg)
+                ],
+              )
             ],
           ),
           _avatar(fromUser, EdgeInsets.only(left: 8.0, top: 8.0))
@@ -188,26 +206,31 @@ class _MessagePageState extends State<MessagePage> {
   }
 
   void _handleSubmit(String text) {
-    textEditingController.clear();
+    text = textEditingController.text;
+    
+    if(text == null || text.length == 0) {
+      Toast.show("发送内容不能为空", context, duration: Toast.LENGTH_SHORT, gravity:  Toast.CENTER);
+      return;
+    }
     MessageEntry messageEntry =
         imHelper.buildTextMsg(text, session.sessionId, session.sessionType);
     messageEntry.sendStatus = IMMsgSendStatus.Sending;
     allMsgs.add(messageEntry);
     setState(() {
-      scrollEnd();
+      scrollEnd(10);
     });
-
+    textEditingController.clear();
+    
     imHelper
         .sendTextMsg(text, session.sessionId, session.sessionType)
         .then((result) {
-      if (result != null) {
-        messageEntry.msgId = result.msgId;
-        messageEntry.sendStatus = IMMsgSendStatus.Ok; 
-      }else {
-        messageEntry.sendStatus = IMMsgSendStatus.Failed;
-      }
       setState(() {
-          
+        if (result != null) {
+          messageEntry.msgId = result.msgId;
+          messageEntry.sendStatus = IMMsgSendStatus.Ok;
+        } else {
+          messageEntry.sendStatus = IMMsgSendStatus.Failed;
+        }
       });
     });
   }
