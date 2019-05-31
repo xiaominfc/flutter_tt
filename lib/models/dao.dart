@@ -59,7 +59,7 @@ class UserDao extends PrimaryDao<UserEntry> {
 
   @override
   initTable(Database db, int version) async{
-    dropTable(db, version);
+    await dropTable(db, version);
     await db.execute('CREATE TABLE '+ tableName() + ' (id INTEGER PRIMARY KEY, name TEXT, avatar TEXT)');
   }
 }

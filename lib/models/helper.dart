@@ -77,8 +77,9 @@ class IMHelper {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int lastUserId = prefs.getInt(LASTUSERIDKEY);
     if(lastUserId == null || lastUserId != imClient.userID()) {
-      DatabaseHelper.instance.resetDb();
+      await DatabaseHelper.instance.resetDb();
       prefs.setInt(LASTUSERIDKEY, imClient.userID());
+      prefs.setInt('users_lastUpdateTime', 0);
     }
 
     imClient.registerNewMsgHandler((result){
