@@ -1,3 +1,10 @@
+//
+// helper.dart
+// Copyright (C) 2019 xiaominfc(武汉鸣鸾信息科技有限公司) <xiaominfc@gmail.com>
+//
+// Distributed under terms of the MIT license.
+//
+
 import 'package:flutter_tt/models/dao.dart';
 import 'package:flutter_tt/models/database_helper.dart';
 import '../teamtalk_dart_lib/src/client.dart';
@@ -13,16 +20,6 @@ class NewMsgEvent{
   MessageEntry msg;
   NewMsgEvent(this.msg);
 }
-
-
-//
-// helper.dart
-// Copyright (C) 2019 xiaominfc(武汉鸣鸾信息科技有限公司) <xiaominfc@gmail.com>
-//
-// Distributed under terms of the MIT license.
-//
-
-
 
 class IMHelper {
   TTSecurity security = TTSecurity.DefaultSecurity();
@@ -212,7 +209,8 @@ class IMHelper {
   }
 
   requestUnReadCnt() async {
-    //imClient.
+    var result = await imClient.requestUnReadMsgCnt();
+    print(result);
   }
 
   loadSessionsFromServer() async {
