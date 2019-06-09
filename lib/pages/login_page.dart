@@ -81,23 +81,23 @@ class _LoginPageState extends State<LoginPage> {
     var username = usernameTextFieldController.text;
     var password = passwordTextFieldController.text;
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var login_server_url = prefs.getString("login_server_url");
-    if(login_server_url == null) {
-      login_server_url = DEFAULTLOGINSERVERURL;
+    var loginServerUrl = prefs.getString("login_server_url");
+    if(loginServerUrl == null) {
+      loginServerUrl = DEFAULTLOGINSERVERURL;
     }
     var imClient = new IMClient()
-        .init(username, password, login_server_url);
+        .init(username, password, loginServerUrl);
         //.init(
         //    username, password, "http://im.jingnongfucang.cn:8080/msg_server");
     imClient.requesetMsgSever().then((serverInfo) {
       if (serverInfo == null) {
-        _loginFailed(msg:'获取msg_server失败:' + login_server_url);
+        _loginFailed(msg:'获取msg_server失败:' + loginServerUrl);
         return;
       }
       imClient
           .doLogin(serverInfo['priorIP'], int.parse(serverInfo['port']))
-          .then((result){
-        if (result) {
+          .then((loginResult){
+        if (loginResult.result) {
           prefs.setString('login_username', username);
           prefs.setString('login_password', password);
           IMHelper.defaultInstance().initData().then((result){
@@ -116,11 +116,11 @@ class _LoginPageState extends State<LoginPage> {
   
   final textFieldController = TextEditingController(text: DEFAULTLOGINSERVERURL);
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  var login_server_url = prefs.getString("login_server_url");
-  if(login_server_url == null) {
-    login_server_url = DEFAULTLOGINSERVERURL;
+  var loginServerUrl = prefs.getString("login_server_url");
+  if(loginServerUrl == null) {
+    loginServerUrl = DEFAULTLOGINSERVERURL;
   }
-  textFieldController.text = login_server_url;
+  textFieldController.text = loginServerUrl;
   return showDialog<String>(
     context: context,
     barrierDismissible: false, // dialog is dismissible with a tap on the barrier

@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import './chat_page.dart';
 import './contacts_page.dart';
+import './personal_page.dart';
 
 class HomePage extends StatefulWidget { 
   
@@ -22,6 +23,7 @@ class _HomePageState extends State<HomePage> {
   List<Widget> _widgetOptions = <Widget>[
     ChatPage(),
     ContactsPage(),
+    PersonalPage(),
   ];
 
   void _onItemTapped(int index) {
@@ -59,10 +61,10 @@ class _HomePageState extends State<HomePage> {
               //     icon: Icon(Icons.devices_other),
               //     title: Text('其他'),
               // ),
-              // BottomNavigationBarItem(
-              //     icon: Icon(Icons.person),
-              //     title: Text('我的'),
-              // ),
+              BottomNavigationBarItem(
+                  icon: Icon(Icons.person),
+                  title: Text('我的'),
+              ),
               
             ],
             currentIndex: _selectedIndex,

@@ -18,7 +18,7 @@ A Flutter project for teamtalk.
 - [x] 上次登录信息保留
 - [ ] 未读消息数显示
 - [ ] 动态表情显示以及发送
-- [ ] 个人主页
+- [x] 个人主页
 - [ ] 语音发送
 - [ ] 图片发送
 - [ ] ...
@@ -32,6 +32,10 @@ cd flutter_tt/lib
 # clone dart api 库 
 git clone https://github.com/xiaominfc/teamtalk_dart_lib.git
 # or ln  {teamtalk_dart_lib} 到flutter_tt/lib 下  
+
+# 更新teamtalk_dart_lib到最新
+# teamtalk_dart_lib路径下
+git pull origin master
 
 # cd 到flutter_tt下（工程目录下）
 cd ..

@@ -27,6 +27,7 @@ class _ChatPageState extends State<ChatPage> {
     setState(() {
       _sessions=sessions;
     });
+    _updateUnReadCnt();
   }
 
   @override
@@ -36,7 +37,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   _updateUnReadCnt(){
-    
+    IMHelper.defaultInstance().requestUnReadCnt();   
   }
 
   _onTap(int position) {

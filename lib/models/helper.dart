@@ -44,6 +44,8 @@ class IMHelper {
   Map<int, GroupEntry> groupMap = new Map();
   var imClient = new IMClient();
 
+  UserEntry loginUserEntry;
+
   isSelfId(int id) {
     return id == imClient.userID();
   }
@@ -82,6 +84,10 @@ class IMHelper {
       prefs.setInt('users_lastUpdateTime', 0);
     }
 
+    UserInfo loginUserInfo = imClient.loginUserInfo();
+
+    loginUserEntry = UserEntry(id: loginUserInfo.userId,avatar: loginUserInfo.avatarUrl,name: loginUserInfo.userNickName);
+
     imClient.registerNewMsgHandler((result){
       MessageEntry messageEntry = new MessageEntry(msgId: result.msgId,fromId: result.fromUserId,sessionId: result.fromUserId,msgData: result.msgData,msgType: result.msgType.value,time: result.createTime);
       if(result.msgType == MsgType.MSG_TYPE_GROUP_AUDIO || result.msgType == MsgType.MSG_TYPE_GROUP_TEXT) {
@@ -95,6 +101,10 @@ class IMHelper {
     await loadFriendsFromServer();
     await loadAllGroupsFromServer();
     return 1;
+  }
+
+  loginOut() async{
+    return imClient.loginOut();
   }
 
   loadFriendsFromServer() async {
@@ -213,6 +223,8 @@ class IMHelper {
     var result = await imClient.requestUnReadMsgCnt();
     print(result);
   }
+
+
 
   loadSessionsFromServer() async {
     //保证在initData之后
