@@ -44,6 +44,14 @@ flutter run
 
 ```
 
+## 预览
+
+![ios_1](https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_1.png)
+![ios_2](https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_2.png)
+![ios_3](https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_3.png)
+![ios_4](https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_4.png)
+
+
 ## ps
 
 写着玩哦,如果想要搞真格的朋友。可以联系交流一下
