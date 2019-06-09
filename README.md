@@ -46,10 +46,10 @@ flutter run
 
 ## 预览
 
-![ios_1](https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_1.png)
-![ios_2](https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_2.png)
-![ios_3](https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_3.png)
-![ios_4](https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_4.png)
+![ios_1](https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_1.png =250x)
+![ios_2](https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_2.png =250x)
+![ios_3](https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_3.png =250x)
+![ios_4](https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_4.png =250x)
 
 
 ## ps
