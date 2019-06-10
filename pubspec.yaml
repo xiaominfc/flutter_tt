@@ -51,6 +51,25 @@ flutter:
   assets:
     - images/linux_512.png
     - images/avatar_default.png
+    - images/yaya/tt_yaya_e1.gif
+    - images/yaya/tt_yaya_e2.gif
+    - images/yaya/tt_yaya_e3.gif
+    - images/yaya/tt_yaya_e4.gif
+    - images/yaya/tt_yaya_e5.gif
+    - images/yaya/tt_yaya_e6.gif
+    - images/yaya/tt_yaya_e7.gif
+    - images/yaya/tt_yaya_e8.gif
+    - images/yaya/tt_yaya_e9.gif
+    - images/yaya/tt_yaya_e10.gif
+    - images/yaya/tt_yaya_e11.gif
+    - images/yaya/tt_yaya_e12.gif
+    - images/yaya/tt_yaya_e13.gif
+    - images/yaya/tt_yaya_e14.gif
+    - images/yaya/tt_yaya_e15.gif
+    - images/yaya/tt_yaya_e16.gif
+    - images/yaya/tt_yaya_e17.gif
+    - images/yaya/tt_yaya_e18.gif
+    - images/yaya/tt_yaya_e19.gif
   # To add assets to your application, add an assets section, like this:
   # assets:
   #  - images/a_dot_burr.jpeg

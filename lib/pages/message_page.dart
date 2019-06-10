@@ -11,6 +11,7 @@ import '../models/dao.dart';
 import '../models/helper.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:toast/toast.dart';
+import '../utils/emoji_utils.dart';
 
 class MessagePage extends StatefulWidget {
   final session;
@@ -64,7 +65,11 @@ class _MessagePageState extends State<MessagePage> {
   Future<Null> _onRefresh() async {
     int msgBeginId = 0;
     if (allMsgs.length > 0) {
-      msgBeginId = allMsgs[0].msgId;
+      msgBeginId = allMsgs[0].msgId - 1;
+      if(msgBeginId <= 0) {
+        setState(() {
+        });
+      }
     }
     imHelper
         .loadMessagesByServer(this.session.sessionId, this.session.sessionType,
@@ -113,7 +118,7 @@ class _MessagePageState extends State<MessagePage> {
 
   _msgContentBuild(MessageEntry msg) {
     double maxWidth = MediaQuery.of(context).size.width * 0.7;
-    var text = imHelper.decodeMsgData(msg.msgData, msg.msgType);
+    String text = imHelper.decodeMsgData(msg.msgData, msg.msgType);
 
     if (text == '[图片]') {
       String url = imHelper.decodeToImage(msg.msgData);
@@ -126,6 +131,17 @@ class _MessagePageState extends State<MessagePage> {
         fit: BoxFit.cover,
         width: maxWidth,
       )));
+    }else if(text.startsWith("[牙牙")){
+      String yayaEmoji =  EmojiUtil.yaya(text);
+      if(yayaEmoji != null) {
+        return Card(
+          child: Container(
+              child: Image(
+        image: AssetImage(yayaEmoji),
+        fit: BoxFit.cover,
+        width: maxWidth,
+      )));
+      }
     }
     return Card(
         child: Container(
