@@ -30,14 +30,13 @@ class _MessagePageState extends State<MessagePage> {
   SessionEntry session;
   List<MessageEntry> allMsgs = List();
   StreamSubscription subscription;
+  bool showPanel = false;
   _MessagePageState(this.session);
 
   void onEvent(event) async {
     if (mounted && event.msg.sessionId == session.sessionId) {
       allMsgs.add(event.msg);
-      setState(() {
-        
-      });
+      setState(() {});
       scrollEnd(10);
     }
   }
@@ -51,7 +50,7 @@ class _MessagePageState extends State<MessagePage> {
     });
   }
 
-  scrollEnd([animationTime=500]) {
+  scrollEnd([animationTime = 500]) {
     double scrollValue = _controller.position.maxScrollExtent;
     if (scrollValue < 10) {
       scrollValue = 1000000;
@@ -66,9 +65,8 @@ class _MessagePageState extends State<MessagePage> {
     int msgBeginId = 0;
     if (allMsgs.length > 0) {
       msgBeginId = allMsgs[0].msgId - 1;
-      if(msgBeginId <= 0) {
-        setState(() {
-        });
+      if (msgBeginId <= 0) {
+        setState(() {});
       }
     }
     imHelper
@@ -114,7 +112,6 @@ class _MessagePageState extends State<MessagePage> {
       ),
     );
   }
-  
 
   _msgContentBuild(MessageEntry msg) {
     double maxWidth = MediaQuery.of(context).size.width * 0.7;
@@ -131,16 +128,17 @@ class _MessagePageState extends State<MessagePage> {
         fit: BoxFit.cover,
         width: maxWidth,
       )));
-    }else if(text.startsWith("[牙牙")){
-      String yayaEmoji =  EmojiUtil.yaya(text);
-      if(yayaEmoji != null) {
+    } else if (text.startsWith("[牙牙")) {
+      String yayaEmoji = EmojiUtil.yaya(text);
+      if (yayaEmoji != null) {
         return Card(
-          child: Container(
-              child: Image(
-        image: AssetImage(yayaEmoji),
-        fit: BoxFit.cover,
-        width: maxWidth,
-      )));
+            child: Container(
+                width: 128,
+                child: Image(
+                  image: AssetImage(yayaEmoji),
+                  fit: BoxFit.cover,
+                  width: maxWidth,
+                )));
       }
     }
     return Card(
@@ -224,9 +222,10 @@ class _MessagePageState extends State<MessagePage> {
 
   void _handleSubmit(String text) {
     text = textEditingController.text;
-    
-    if(text == null || text.length == 0) {
-      Toast.show("发送内容不能为空", context, duration: Toast.LENGTH_SHORT, gravity:  Toast.CENTER);
+
+    if (text == null || text.length == 0) {
+      Toast.show("发送内容不能为空", context,
+          duration: Toast.LENGTH_SHORT, gravity: Toast.CENTER);
       return;
     }
     MessageEntry messageEntry =
@@ -237,7 +236,7 @@ class _MessagePageState extends State<MessagePage> {
       scrollEnd(10);
     });
     textEditingController.clear();
-    
+
     imHelper
         .sendTextMsg(text, session.sessionId, session.sessionType)
         .then((result) {
@@ -256,30 +255,56 @@ class _MessagePageState extends State<MessagePage> {
     return new IconTheme(
       data: new IconThemeData(color: Colors.blue),
       child: new Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16.0),
-        child: new Row(
-          children: <Widget>[
-            new Flexible(
-              child: new TextField(
-                decoration: new InputDecoration.collapsed(hintText: "输入消息"),
-                controller: textEditingController,
-                onSubmitted: _handleSubmit,
+          margin: EdgeInsets.only(left: 8, right: 8, bottom: 10),
+          child: Column(
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  new Flexible(
+                    child: new TextField(
+                      decoration:
+                          new InputDecoration.collapsed(hintText: "输入消息"),
+                      controller: textEditingController,
+                      onSubmitted: _handleSubmit,
+                    ),
+                  ),
+                  new Container(
+                    margin: const EdgeInsets.only(left: 2, right: 2),
+                    child: new IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: new Icon(Icons.add_circle_outline),
+                      onPressed: () {
+                        showPanel = !showPanel;
+                        setState(() {
+                          
+                        });
+                      },
+                    ),
+                  ),
+                  new Container(
+                    margin: const EdgeInsets.only(right: 2),
+                    child: new IconButton(
+                      padding: EdgeInsets.zero,
+                      icon: new Icon(Icons.send),
+                      onPressed: () =>
+                          _handleSubmit(textEditingController.text),
+                    ),
+                  )
+                ],
               ),
-            ),
-            new Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: new IconButton(
-                icon: new Icon(Icons.send),
-                onPressed: () => _handleSubmit(textEditingController.text),
-              ),
-            )
-          ],
-        ),
-      ),
+              SizedBox(
+                height: showPanel?100:0,
+              )
+            ],
+          )),
     );
   }
 
   _hideBottomLayout() {
+    if(showPanel) {
+      showPanel = !showPanel;
+      setState(() {});
+    }
     FocusScope.of(context).requestFocus(new FocusNode());
   }
 
