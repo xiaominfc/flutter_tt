@@ -5,7 +5,7 @@
 // Distributed under terms of the MIT license.
 //
 import 'package:sqflite/sqlite_api.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 import './database_helper.dart';
 
 
@@ -14,17 +14,19 @@ class UserEntry extends BaseItem {
   String name;
   String avatar;
   int id;
-  UserEntry({this.id,this.name,this.avatar});
+  String signInfo;
+  UserEntry({this.id,this.name,this.avatar,this.signInfo});
 
   @override
   Map<String, dynamic> toMap() {
-    return {'id':id, 'name':name, 'avatar':avatar};
+    return {'id':id, 'name':name, 'avatar':avatar, 'signInfo':signInfo};
   }
   @override
   fromMap(Map<String, dynamic> map){
     this.id = map['id'];
     this.name = map['name'];
     this.avatar = map['avatar'];
+    this.signInfo = map['signInfo'];
     return this;
   }
 
@@ -59,8 +61,10 @@ class UserDao extends PrimaryDao<UserEntry> {
 
   @override
   initTable(Database db, int version) async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setInt('users_lastUpdateTime', 0);
     await dropTable(db, version);
-    await db.execute('CREATE TABLE '+ tableName() + ' (id INTEGER PRIMARY KEY, name TEXT, avatar TEXT)');
+    await db.execute('CREATE TABLE '+ tableName() + ' (id INTEGER PRIMARY KEY, name TEXT, avatar TEXT, signInfo TEXT)');
   }
 }
 

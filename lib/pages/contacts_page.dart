@@ -58,9 +58,12 @@ class _ContactsPageState extends State<ContactsPage> {
                             ),
                           ),
                           new Column(
-                            crossAxisAlignment: CrossAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: <Widget>[
                               new Text(user.name,
+                                  style: Theme.of(context).textTheme.title),
+                              new Text(user.signInfo,
                                   style: Theme.of(context).textTheme.subhead),
                             ],
                           )

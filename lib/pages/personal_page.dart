@@ -43,7 +43,16 @@ class _PersonalPageState extends State<PersonalPage> {
                 ),
               ),
               Column(
-                children: <Widget>[Text(userEntry.name)],
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(
+                    userEntry.name??"",
+                    style: Theme.of(context).textTheme.headline
+                    ),
+                  Text(userEntry.signInfo??"",
+                    style: Theme.of(context).textTheme.subtitle
+                  )
+                  ],
               )
             ],
           ),

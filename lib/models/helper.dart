@@ -86,7 +86,7 @@ class IMHelper {
 
     UserInfo loginUserInfo = imClient.loginUserInfo();
 
-    loginUserEntry = UserEntry(id: loginUserInfo.userId,avatar: loginUserInfo.avatarUrl,name: loginUserInfo.userNickName);
+    loginUserEntry = UserEntry(id: loginUserInfo.userId,avatar: loginUserInfo.avatarUrl,name: loginUserInfo.userNickName, signInfo: loginUserInfo.signInfo);
 
     imClient.registerNewMsgHandler((result){
       MessageEntry messageEntry = new MessageEntry(msgId: result.msgId,fromId: result.fromUserId,sessionId: result.fromUserId,msgData: result.msgData,msgType: result.msgType.value,time: result.createTime);
@@ -114,11 +114,12 @@ class IMHelper {
     var result = await imClient.requestContacts(lastUpdateTime);
     if (result != null && result.userList.length > 0) {
       prefs.setInt('users_lastUpdateTime', result.latestUpdateTime);
-      result.userList.forEach((userInfo) {
+      result.userList.forEach((UserInfo userInfo) {
         UserEntry userEntry = new UserEntry(
             id: userInfo.userId,
             name: userInfo.userNickName,
-            avatar: userInfo.avatarUrl);
+            avatar: userInfo.avatarUrl,
+            signInfo: userInfo.signInfo);
         userDao.updateOrInsert(userEntry);
         userMap[userEntry.id] = userEntry;
       });
