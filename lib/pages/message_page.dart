@@ -94,7 +94,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     if (isVisible) {
       print("KEYBOARD VISIBLE");
       if (_textFocusNode.hasFocus) {
-        _controller.jumpTo(_controller.offset  + WidgetsBinding.instance.window.viewInsets.bottom);
+        _controller.jumpTo(_controller.position.maxScrollExtent + 100);
       }
     } else {
       print("KEYBOARD HIDDEN");
@@ -108,7 +108,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
   //滑动到底部
   _scrollToEnd([animationTime = 500]) {
-    double scrollValue = _controller.position.maxScrollExtent + 200;
+    double scrollValue = _controller.position.maxScrollExtent + 100;
     if (scrollValue < 10) {
       scrollValue = 1000000;
     }
@@ -141,7 +141,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         allMsgs.insertAll(0, msgs.reversed);
         setState(() {
           if (size == 0) {
-            _scrollToEnd();
+            _scrollToEnd(0);
           }
         });
       }

@@ -33,7 +33,7 @@ class _LoginPageState extends State<LoginPage> {
   final passwordTextFieldController = TextEditingController(text: "123456");
 
   //final DEFAULTLOGINSERVERURL = 'http://im.xiaominfc.com:8080/msg_server';
-  final DEFAULTLOGINSERVERURL = 'http://ngrok.haitou.cc:43880/msg_server';
+  static const DEFAULTLOGINSERVERURL = 'http://ngrok.haitou.cc:43880/msg_server';
   
 
   @override

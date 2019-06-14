@@ -6,9 +6,13 @@
 //
 
 import 'package:flutter/material.dart';
-import 'package:flutter_tt/models/dao.dart';
+import '../models/dao.dart';
+import '../models/helper.dart';
+import './message_page.dart';
+import '../utils/utils.dart';
 
 class ContactsPage extends StatefulWidget {
+
   @override
   State<StatefulWidget> createState() {
     return _ContactsPageState();
@@ -17,17 +21,31 @@ class ContactsPage extends StatefulWidget {
 
 class _ContactsPageState extends State<ContactsPage> {
   List users;
-
+  final IMHelper imHelper = IMHelper();
   UserDao userDao = new UserDao();
   @override
   void initState() {
     super.initState();
-    userDao.queryAll().then((list) {
+    userDao.queryAllWith(" id != " + imHelper.loginUserId().toString() ).then((list) {
       setState(() {
         print(list);
         users = list;
       });
     });
+  }
+
+
+  _handleUserChat(UserEntry user) {
+    if(imHelper.isSelfId(user.id)) {
+      
+    }else {
+      SessionEntry entry = SessionEntry();
+      entry.avatar = user.avatar;
+      entry.sessionId = user.id;
+      entry.sessionName = user.name;
+      entry.sessionType = IMSeesionType.Person;
+      navigatePushPage(this.context, MessagePage(entry));
+    }
   }
 
   @override
@@ -40,35 +58,40 @@ class _ContactsPageState extends State<ContactsPage> {
             itemBuilder: (context, position) {
               if (position < users.length) {
                 UserEntry user = users[position];
-                return Card(
-                  child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: new Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          new Container(
-                            margin: const EdgeInsets.only(right: 16.0),
-                            width: 36,
-                            child: ClipOval(
-                              child: FadeInImage(
-                                image: NetworkImage(user.avatar),
-                                placeholder:
-                                    AssetImage('images/avatar_default.png'),
+                return new GestureDetector(
+                  onTap: (){
+                    _handleUserChat(user);
+                  },
+                  child: Card(
+                    child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: new Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            new Container(
+                              margin: const EdgeInsets.only(right: 16.0),
+                              width: 36,
+                              child: ClipOval(
+                                child: FadeInImage(
+                                  image: NetworkImage(user.avatar),
+                                  placeholder:
+                                      AssetImage('images/avatar_default.png'),
+                                ),
                               ),
                             ),
-                          ),
-                          new Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: <Widget>[
-                              new Text(user.name,
-                                  style: Theme.of(context).textTheme.title),
-                              new Text(user.signInfo,
-                                  style: Theme.of(context).textTheme.subhead),
-                            ],
-                          )
-                        ],
-                      )),
+                            new Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: <Widget>[
+                                new Text(user.name,
+                                    style: Theme.of(context).textTheme.subtitle),
+                                new Text(user.signInfo,
+                                    style: Theme.of(context).textTheme.subhead),
+                              ],
+                            )
+                          ],
+                        )),
+                  ),
                 );
               }
               return null;

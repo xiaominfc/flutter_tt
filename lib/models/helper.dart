@@ -50,6 +50,10 @@ class IMHelper {
     return id == imClient.userID();
   }
 
+  loginUserId(){
+    return imClient.userID();
+  }
+
   loadLocalFriends({update = true}) async {
     List users = await userDao.queryAll();
     if (update) {

@@ -30,8 +30,8 @@
 
 class EmojiUtil {
 
-  static String YAYABASEPATH = "images/yaya/";
-  static Map<String, String> YAYAMAP = {
+  static const String YAYABASEPATH = "images/yaya/";
+  static const Map<String, String> YAYAMAP = {
     "[牙牙撒花]": "tt_yaya_e1.gif",
     "[牙牙尴尬]": "tt_yaya_e2.gif",
     "[牙牙大笑]": "tt_yaya_e3.gif",

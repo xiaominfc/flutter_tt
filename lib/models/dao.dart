@@ -39,15 +39,6 @@ class UserEntry extends BaseItem {
 }
 
 class UserDao extends PrimaryDao<UserEntry> {
-  // static UserDao _instance;
-  // static UserDao instance(){
-  //   if(_instance == null) {
-  //     _instance = new UserDao._internal();
-  //   }
-  //   return _instance;
-  // }
-  // UserDao._internal();
-  // factory UserDao() => instance();
 
   @override
   String tableName() {
@@ -116,18 +107,18 @@ class GroupDao extends PrimaryDao<GroupEntry> {
 
 
 class IMMsgType {
-  static int MSG_TYPE_SINGLE_TEXT = 1;
-  static int MSG_TYPE_SINGLE_AUDIO = 2;
-  static int MSG_TYPE_GROUP_TEXT = 17;
-  static int MSG_TYPE_GROUP_AUDIO = 18;
+  static const int MSG_TYPE_SINGLE_TEXT = 1;
+  static const int MSG_TYPE_SINGLE_AUDIO = 2;
+  static const int MSG_TYPE_GROUP_TEXT = 17;
+  static const int MSG_TYPE_GROUP_AUDIO = 18;
 }
 
 
 
 class IMMsgSendStatus {
-  static int Sending = 1;
-  static int Ok = 2;
-  static int Failed = 0;
+  static const int Sending = 1;
+  static const int Ok = 2;
+  static const int Failed = 0;
 }
 
 class MessageEntry extends BaseItem {
@@ -155,8 +146,8 @@ class MessageEntry extends BaseItem {
 }
 
 class IMSeesionType {
-  static int Person=1;
-  static int Group=2;
+  static const int Person=1;
+  static const int Group=2;
 }
 
 class SessionEntry extends BaseItem {
@@ -175,7 +166,6 @@ class SessionEntry extends BaseItem {
 
   @override
   fromMap(Map<String, dynamic> map) {
-    // TODO: implement fromMap
     return this;
   }
 
