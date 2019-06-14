@@ -6,6 +6,8 @@
 //
 
 import 'dart:async';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import '../models/dao.dart';
 import '../models/helper.dart';
@@ -21,42 +23,103 @@ class MessagePage extends StatefulWidget {
   createState() => _MessagePageState(this.session);
 }
 
-class _MessagePageState extends State<MessagePage> {
+class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   EventBus eventBus = EventBus(sync: true);
   final IMHelper imHelper = IMHelper();
   final TextEditingController textEditingController =
       new TextEditingController();
+  FocusNode _textFocusNode = FocusNode();
   final ScrollController _controller = ScrollController();
   SessionEntry session;
   List<MessageEntry> allMsgs = List();
   StreamSubscription subscription;
-  bool showPanel = false;
+  bool _showPanel = false;
   _MessagePageState(this.session);
-
-  void onEvent(event) async {
+  //EventBus 回调
+  void _onEvent(event) async {
     if (mounted && event.msg.sessionId == session.sessionId) {
       allMsgs.add(event.msg);
       setState(() {});
-      scrollEnd(10);
+      _scrollToEnd(10);
     }
   }
 
   @override
   void initState() {
     super.initState();
-    _onRefresh().then((result) {});
+    WidgetsBinding.instance.addObserver(this);
+    _textFocusNode.addListener(() {
+      print("_textFocusNode.hasFocus:" + _textFocusNode.hasFocus.toString());
+      if (_textFocusNode.hasFocus) {
+        setState(() {
+          _showPanel = false;
+        });
+        
+        //_scrollToEnd(10);
+      } else {}
+      print(MediaQuery.of(context).viewInsets.bottom);
+    });
+    
+    _onRefresh().then((result) {
+
+    });
     subscription = imHelper.eventBus.on<NewMsgEvent>().listen((event) {
-      onEvent(event);
+      _onEvent(event);
     });
   }
 
-  scrollEnd([animationTime = 500]) {
-    double scrollValue = _controller.position.maxScrollExtent;
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    subscription.cancel();
+    super.dispose();
+  }
+
+  var _isKeyboardOpen = false;
+  @override
+  void didChangeMetrics() {
+    final value = WidgetsBinding.instance.window.viewInsets.bottom;
+    if (value <= 0) {
+      if (_isKeyboardOpen) {
+        _onKeyboardChanged(false);
+      }
+      _isKeyboardOpen = false;
+    } else {
+      _isKeyboardOpen = true;
+      _onKeyboardChanged(true);
+    }
+  }
+
+  _onKeyboardChanged(bool isVisible) {
+    if (isVisible) {
+      print("KEYBOARD VISIBLE");
+      if (_textFocusNode.hasFocus) {
+        _controller.jumpTo(_controller.offset  + WidgetsBinding.instance.window.viewInsets.bottom);
+      }
+    } else {
+      print("KEYBOARD HIDDEN");
+      if(_showPanel){
+        setState(() {
+          
+        });
+      }
+    }
+  }
+
+  //滑动到底部
+  _scrollToEnd([animationTime = 500]) {
+    double scrollValue = _controller.position.maxScrollExtent + 200;
     if (scrollValue < 10) {
       scrollValue = 1000000;
     }
 
-    //_controller.jumpTo(scrollValue);
+    print("scroll to :$scrollValue");
+
+    if(animationTime == 0) {
+      _controller.jumpTo(scrollValue);
+      return;
+    }
+
     _controller.animateTo(scrollValue,
         duration: Duration(milliseconds: animationTime), curve: Curves.easeIn);
   }
@@ -78,7 +141,7 @@ class _MessagePageState extends State<MessagePage> {
         allMsgs.insertAll(0, msgs.reversed);
         setState(() {
           if (size == 0) {
-            scrollEnd();
+            _scrollToEnd();
           }
         });
       }
@@ -86,21 +149,17 @@ class _MessagePageState extends State<MessagePage> {
     return;
   }
 
-  @override
-  void dispose() {
-    //_controller.dispose();
-    super.dispose();
-    subscription.cancel();
-  }
-
-  Widget msgItem(MessageEntry msg, UserEntry fromUser) {
+  //构建单个消息体
+  Widget _buildMsgItem(MessageEntry msg, UserEntry fromUser) {
     if (imHelper.isSelfId(fromUser.id)) {
       return rightAvatarItem(msg, fromUser);
     }
     return leftAvatarItem(msg, fromUser);
   }
 
-  _avatar(UserEntry fromUser, edge) {
+  //生成 头像
+
+  Widget _avatar(UserEntry fromUser, edge) {
     return Container(
       width: 36,
       margin: edge,
@@ -113,7 +172,9 @@ class _MessagePageState extends State<MessagePage> {
     );
   }
 
-  _msgContentBuild(MessageEntry msg) {
+  // 构建内容显示
+
+  Widget _msgContentBuild(MessageEntry msg) {
     double maxWidth = MediaQuery.of(context).size.width * 0.7;
     String text = imHelper.decodeMsgData(msg.msgData, msg.msgType);
 
@@ -153,7 +214,8 @@ class _MessagePageState extends State<MessagePage> {
             )));
   }
 
-  reSendMsg(MessageEntry msg) {
+  //重发消息
+  _reSendMsg(MessageEntry msg) {
     //还没实现 只是测试
     msg.sendStatus = IMMsgSendStatus.Ok;
     setState(() {});
@@ -186,7 +248,7 @@ class _MessagePageState extends State<MessagePage> {
                                 color: Colors.red,
                               ),
                               onPressed: () {
-                                reSendMsg(msg);
+                                _reSendMsg(msg);
                               },
                             )
                           : Center()),
@@ -222,7 +284,7 @@ class _MessagePageState extends State<MessagePage> {
 
   void _handleSubmit(String text) {
     text = textEditingController.text;
-
+    FocusScope.of(context).requestFocus(_textFocusNode);
     if (text == null || text.length == 0) {
       Toast.show("发送内容不能为空", context,
           duration: Toast.LENGTH_SHORT, gravity: Toast.CENTER);
@@ -233,7 +295,7 @@ class _MessagePageState extends State<MessagePage> {
     messageEntry.sendStatus = IMMsgSendStatus.Sending;
     allMsgs.add(messageEntry);
     setState(() {
-      scrollEnd(10);
+      _scrollToEnd(0);
     });
     textEditingController.clear();
 
@@ -255,17 +317,25 @@ class _MessagePageState extends State<MessagePage> {
     return new IconTheme(
       data: new IconThemeData(color: Colors.blue),
       child: new Container(
-          margin: EdgeInsets.only(left: 8, right: 8, bottom: 10),
+          decoration: Theme.of(context).platform == TargetPlatform.iOS
+              ? new BoxDecoration(
+                  border:
+                      new Border(top: new BorderSide(color: Colors.grey[200])))
+              : null,
+          margin: EdgeInsets.only(left: 8, right: 8),
           child: Column(
             children: <Widget>[
               Row(
                 children: <Widget>[
                   new Flexible(
-                    child: new TextField(
+                    child: new TextFormField(
                       decoration:
                           new InputDecoration.collapsed(hintText: "输入消息"),
                       controller: textEditingController,
-                      onSubmitted: _handleSubmit,
+                      focusNode: _textFocusNode,                      
+                      textInputAction: TextInputAction.send,
+                      onFieldSubmitted: _handleSubmit,
+                      
                     ),
                   ),
                   new Container(
@@ -274,38 +344,69 @@ class _MessagePageState extends State<MessagePage> {
                       padding: EdgeInsets.zero,
                       icon: new Icon(Icons.add_circle_outline),
                       onPressed: () {
-                        showPanel = !showPanel;
+                        _showPanel = !_showPanel;
+                        if (_showPanel) {
+                          if(_isKeyboardOpen) {
+                            FocusScope.of(context).requestFocus(new FocusNode());//show panel after hide keyboard
+                            return;
+                          }
+                        }
                         setState(() {
-                          
+                              
                         });
                       },
                     ),
                   ),
                   new Container(
-                    margin: const EdgeInsets.only(right: 2),
+                    margin: const EdgeInsets.only(left: 2, right: 2),
                     child: new IconButton(
                       padding: EdgeInsets.zero,
-                      icon: new Icon(Icons.send),
-                      onPressed: () =>
-                          _handleSubmit(textEditingController.text),
+                      icon: new Icon(Icons.insert_emoticon),
+                      onPressed: () {
+                        _showPanel = !_showPanel;
+                        if (_showPanel) {
+                          if(_isKeyboardOpen) {
+                            FocusScope.of(context).requestFocus(new FocusNode());//show panel after hide keyboard
+                            return;
+                          }
+                        }
+                        setState(() {
+                              
+                        });
+                      },
                     ),
                   )
                 ],
               ),
               SizedBox(
-                height: showPanel?100:0,
+                height: _showPanel ? 200 : 0,
+                child: Column(
+                  children: <Widget>[
+                    Divider(
+                      height: 1.0,
+                    ),
+                  ],
+                ),
               )
             ],
           )),
     );
   }
 
+  //hide panel and keyboard
   _hideBottomLayout() {
-    if(showPanel) {
-      showPanel = !showPanel;
-      setState(() {});
+    if (_showPanel) {
+      setState(() {
+        _showPanel = !_showPanel;
+      });
     }
     FocusScope.of(context).requestFocus(new FocusNode());
+  }
+
+  @override
+  void didUpdateWidget(MessagePage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    print('didUpdateWidget');
   }
 
   @override
@@ -326,7 +427,7 @@ class _MessagePageState extends State<MessagePage> {
                     MessageEntry msg = allMsgs[position];
                     UserEntry fromUser =
                         IMHelper.defaultInstance().userMap[msg.fromId];
-                    return msgItem(msg, fromUser);
+                    return _buildMsgItem(msg, fromUser);
                   },
                 ),
               )),
