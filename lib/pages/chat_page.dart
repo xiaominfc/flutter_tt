@@ -11,7 +11,6 @@ import '../models/dao.dart';
 import 'message_page.dart';
 import '../models/helper.dart';
 
-
 class ChatPage extends StatefulWidget {
   @override
   _ChatPageState createState() {
@@ -23,21 +22,41 @@ class ChatPage extends StatefulWidget {
 class _ChatPageState extends State<ChatPage> {
   List _sessions;
   void updateData() async {
-    var sessions = await IMHelper.defaultInstance().loadSessionsFromServer();
-    setState(() {
-      _sessions=sessions;
+    var sessions = await IMHelper.defaultInstance().loadLocalSessions();
+    bool force = true;
+    if (sessions.length > 0) {
+      setState(() {
+        _sessions = sessions;
+      });
+      force = false;
+    }
+    IMHelper.defaultInstance()
+        .loadSessionsFromServer(force: force)
+        .then((result) async {
+      if (result > 0) {
+        _sessions = await IMHelper.defaultInstance().loadLocalSessions();
+      }
+      await _updateUnReadCnt();
+      setState(() {});
     });
-    _updateUnReadCnt();
   }
 
   @override
   void initState() {
+    print("chat init");
     super.initState();
     updateData();
   }
 
-  _updateUnReadCnt(){
-    IMHelper.defaultInstance().requestUnReadCnt();   
+  @override
+  void deactivate() {
+    super.deactivate();
+    //print("chat deactivate");
+  }
+  
+
+  _updateUnReadCnt() async {
+    await IMHelper.defaultInstance().requestUnReadCnt();
   }
 
   _onTap(int position) {
@@ -53,6 +72,9 @@ class _ChatPageState extends State<ChatPage> {
             itemCount: _sessions == null ? 0 : _sessions.length,
             itemBuilder: (context, position) {
               SessionEntry sessionEntry = _sessions[position];
+              int unReadCnt = IMHelper.defaultInstance()
+                  .getUnreadCntBySessionKey(sessionEntry.sessionKey);
+
               return Column(children: <Widget>[
                 GestureDetector(
                   onTap: () => _onTap(position),
@@ -66,9 +88,18 @@ class _ChatPageState extends State<ChatPage> {
                     title: Text(sessionEntry.sessionName,
                         style: Theme.of(context).textTheme.subhead),
                     subtitle: new Text(sessionEntry.lastMsg, maxLines: 1),
-                    trailing: Icon(
-                      Icons.arrow_forward_ios,
-                    ),
+                    trailing: unReadCnt > 0
+                        ? Container(
+                            child: Center(child: Text(unReadCnt.toString(),style: TextStyle(color: Colors.white))),
+                            width: 20,
+                            decoration: new BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.red,
+                            ),
+                          )
+                        : Icon(
+                            Icons.arrow_forward_ios,
+                          ),
                   ),
                 ),
                 Divider(

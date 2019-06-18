@@ -152,23 +152,59 @@ class IMSeesionType {
 
 class SessionEntry extends BaseItem {
 
+  String sessionKey;
   int sessionId;
   String lastMsg;
   String sessionName;
   String avatar;
   int sessionType;
+  int updatedTime;
+
+  SessionEntry([int _sessionId,int _sessionType]){
+    this.sessionId = _sessionId;
+    this.sessionType = _sessionType;
+    this.sessionKey = _sessionId.toString() + "_" + _sessionType.toString();
+  }
 
   @override
-  Map<String, dynamic> toMap() {
-    
-    return {'sessionId':sessionId, 'sessionName':sessionName, 'lastMsg':lastMsg, 'avatar':avatar, 'sessionType':sessionType};
+  Map<String, dynamic> toMap() {    
+    return {'sessionKey':sessionKey,'sessionId':sessionId, 'sessionName':sessionName, 'lastMsg':lastMsg, 'avatar':avatar, 'sessionType':sessionType,'updatedTime': updatedTime};
   }
 
   @override
   fromMap(Map<String, dynamic> map) {
+    sessionKey = map['sessionKey'];
+    sessionId = map['sessionId'];
+    avatar = map['avatar'];
+    lastMsg = map['lastMsg'];
+    sessionName = map['sessionName'];
+    sessionType = map['sessionType'];
+    updatedTime = map['updatedTime'];
     return this;
   }
+}
 
+class SessionDao extends PrimaryDao<SessionEntry>{
+  @override
+  BaseItem buildItem(Map<String, dynamic> map) {
+    return SessionEntry().fromMap(map);
+  }
+
+  @override
+  String primarykey() {
+    return "sessionKey";
+  }
+
+  @override
+  initTable(Database db, int version) async{
+    dropTable(db, version);
+    await db.execute('CREATE TABLE '+tableName() + ' (sessionKey TEXT PRIMARY KEY, sessionName TEXT, avatar TEXT, sessionId INTEGER, sessionType INTEGER, lastMsg TEXT, updatedTime INTEGER)');
+  }
+
+  @override
+  String tableName() {
+    return "im_session";
+  }
 
 }
 

@@ -39,6 +39,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   void _onEvent(event) async {
     if (mounted && event.msg.sessionId == session.sessionId) {
       allMsgs.add(event.msg);
+      imHelper.sureReadMessage(event.msg);
       setState(() {});
       _scrollToEnd(10);
     }
@@ -47,9 +48,10 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    
     WidgetsBinding.instance.addObserver(this);
     _textFocusNode.addListener(() {
-      print("_textFocusNode.hasFocus:" + _textFocusNode.hasFocus.toString());
+      //print("_textFocusNode.hasFocus:" + _textFocusNode.hasFocus.toString());
       if (_textFocusNode.hasFocus) {
         setState(() {
           _showPanel = false;
@@ -57,7 +59,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         
         //_scrollToEnd(10);
       } else {}
-      print(MediaQuery.of(context).viewInsets.bottom);
+      //print(MediaQuery.of(context).viewInsets.bottom);
     });
     
     _onRefresh().then((result) {
@@ -113,7 +115,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       scrollValue = 1000000;
     }
 
-    print("scroll to :$scrollValue");
+    //print("scroll to :$scrollValue");
 
     if(animationTime == 0) {
       _controller.jumpTo(scrollValue);
@@ -142,6 +144,11 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         setState(() {
           if (size == 0) {
             _scrollToEnd(0);
+            if(allMsgs.length > 0) {
+                MessageEntry last = allMsgs.last;
+                imHelper.clearUnReadCntBySessionKey(session.sessionKey);
+                imHelper.sureReadMessage(last);
+            }
           }
         });
       }
@@ -401,12 +408,6 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       });
     }
     FocusScope.of(context).requestFocus(new FocusNode());
-  }
-
-  @override
-  void didUpdateWidget(MessagePage oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    print('didUpdateWidget');
   }
 
   @override

@@ -21,6 +21,10 @@ class NewMsgEvent{
   NewMsgEvent(this.msg);
 }
 
+int currentUnixTime(){
+  return (new DateTime.now().millisecondsSinceEpoch)~/1000;
+}
+
 class IMHelper {
   TTSecurity security = TTSecurity.DefaultSecurity();
   static IMHelper _instance;
@@ -40,8 +44,11 @@ class IMHelper {
   IMHelper._internal();
   UserDao userDao = UserDao();
   GroupDao groupDao = GroupDao();
+  SessionDao sessionDao = SessionDao();
   Map<int, UserEntry> userMap = new Map();
   Map<int, GroupEntry> groupMap = new Map();
+  Map<String, SessionEntry> sessionMap = new Map();
+  Map<String,int> unreadInfoMap = new Map();
   var imClient = new IMClient();
 
   UserEntry loginUserEntry;
@@ -68,7 +75,6 @@ class IMHelper {
 
   loadLocalGroups({update = true}) async {
     List groups = await groupDao.queryAll();
-    print(groups);
     if (update) {
       groupMap.clear();
       groups.forEach((group) {
@@ -76,6 +82,15 @@ class IMHelper {
       });
     }
     return groups;
+  }
+
+  loadLocalSessions() async{
+    List sessions = await sessionDao.queryAll();
+    sessionMap.clear();
+    sessions.forEach((session){
+      sessionMap[session.sessionKey] = session;
+    });
+    return sessions;
   }
 
   initData() async {
@@ -176,13 +191,13 @@ class IMHelper {
     if (result != null && result.msgList != null) {
       result.msgList.forEach((MsgInfo msg) {
         //String msgText = decodeMsgData(msg.msgData, msg.msgType);
-        var messageEntry2 = new MessageEntry(
+        var messageEntry = new MessageEntry(
             fromId: msg.fromSessionId,
             msgData: msg.msgData,
             msgId: msg.msgId,
+            sessionId: sessionId,
             time: msg.createTime,
             msgType: msg.msgType.value);
-        MessageEntry messageEntry = messageEntry2;
         msgs.add(messageEntry);
       });
     }
@@ -226,29 +241,62 @@ class IMHelper {
 
   requestUnReadCnt() async {
     var result = await imClient.requestUnReadMsgCnt();
-    print(result);
+    unreadInfoMap.clear();
+    if(result != null){
+      int length = result.unreadinfoList.length;
+      for(int i = 0; i < length; i ++){
+        UnreadInfo unreadinfo = result.unreadinfoList[i];
+        String sessionKey = unreadinfo.sessionId.toString() + "_" + unreadinfo.sessionType.value.toString();
+        unreadInfoMap[sessionKey] = unreadinfo.unreadCnt;
+      }
+    }
+    print(unreadInfoMap);
   }
 
+  int getUnreadCntBySessionKey(String sessionKey) {
+    if(unreadInfoMap.containsKey(sessionKey)){
+      return unreadInfoMap[sessionKey];
+    }
+    return 0;
+  }
 
+  void clearUnReadCntBySessionKey(String sessionKey){
+    unreadInfoMap.remove(sessionKey);
+  }
 
-  loadSessionsFromServer() async {
+  sureReadMessage(MessageEntry msg) async{
+    print("sureReadMessage");
+    print(msg);
+    var sessionType = SessionType.SESSION_TYPE_GROUP;
+
+    if(msg.msgType == IMMsgType.MSG_TYPE_SINGLE_AUDIO || msg.msgType == IMMsgType.MSG_TYPE_SINGLE_TEXT) {
+      sessionType = SessionType.SESSION_TYPE_SINGLE;
+    }
+    return imClient.sureReadMessage(msg.msgId,msg.sessionId,sessionType);
+  }
+
+  loadSessionsFromServer({force:true}) async {
     //保证在initData之后
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var lastUpdateTime = prefs.getInt('sessions_lastUpdateTime');
     lastUpdateTime = lastUpdateTime != null ? lastUpdateTime : 0;
+    if(force){
+      lastUpdateTime = 0;
+    }
     var result = await imClient.requestSessions(lastUpdateTime);
-    List<SessionEntry> sessions = new List();
+    //List<SessionEntry> sessions = new List();
     if (result != null && result.contactSessionList.length > 0) {
-      prefs.setInt('sessions_lastUpdateTime', lastUpdateTime);
+      prefs.setInt('sessions_lastUpdateTime', currentUnixTime());
       for (int i = 0; i < result.contactSessionList.length; i++) {
         ContactSessionInfo sessionInfo = result.contactSessionList[i];
         //print(sessionInfo);
-        SessionEntry sessionEntry = new SessionEntry();
+        
         int sessionID = sessionInfo.sessionId;
-        sessionEntry.sessionId = sessionID;
-        sessionEntry.lastMsg =
-            decodeMsgData(sessionInfo.latestMsgData, sessionInfo.latestMsgType.value);
+        SessionEntry sessionEntry = new SessionEntry(sessionID,sessionInfo.sessionType.value);
+        //sessionEntry.sessionId = sessionID;
+        sessionEntry.updatedTime = sessionInfo.updatedTime;
+        sessionEntry.lastMsg = decodeMsgData(sessionInfo.latestMsgData, sessionInfo.latestMsgType.value);
         if (sessionInfo.sessionType == SessionType.SESSION_TYPE_GROUP) {
           sessionEntry.sessionType = IMSeesionType.Group;
           GroupEntry entry = groupMap[sessionID];
@@ -268,10 +316,13 @@ class IMHelper {
           sessionEntry.avatar = entry.avatar;
           sessionEntry.sessionName = entry.name;
         }
-        sessions.add(sessionEntry);
+        await sessionDao.updateOrInsert(sessionEntry);
+        //sessions.add(sessionEntry);
       }
+      return result.contactSessionList.length;
     }
-    return sessions;
+    return 0;
+    //return sessions;
   }
 
   buildTextMsg(String text,int sessionId,int sessionType) {

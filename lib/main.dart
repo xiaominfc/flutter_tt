@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import './pages/login_page.dart';
 import './utils/utils.dart';
 
@@ -33,7 +32,6 @@ class WelcomePage extends StatefulWidget {
 class _WelcomePageState extends State<WelcomePage> {
   @override
   Widget build(BuildContext context) {
-    debugPrint('build state');
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -57,8 +55,7 @@ class _WelcomePageState extends State<WelcomePage> {
   @override
   void initState() {
     super.initState();
-    debugPrint('initState');
-    timer = new Timer(const Duration(milliseconds: 3000), () {
+    timer = new Timer(const Duration(milliseconds: 1000), () {
       navigatePage(context, new LoginPage());
       //navigatePage(context,new WelcomePage());
     });

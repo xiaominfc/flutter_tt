@@ -39,11 +39,11 @@ class _ContactsPageState extends State<ContactsPage> {
     if(imHelper.isSelfId(user.id)) {
       
     }else {
-      SessionEntry entry = SessionEntry();
+      SessionEntry entry = SessionEntry(user.id,IMSeesionType.Person);
       entry.avatar = user.avatar;
-      entry.sessionId = user.id;
+      //entry.sessionId = user.id;
       entry.sessionName = user.name;
-      entry.sessionType = IMSeesionType.Person;
+      //entry.sessionType = IMSeesionType.Person;
       navigatePushPage(this.context, MessagePage(entry));
     }
   }

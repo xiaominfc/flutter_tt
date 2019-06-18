@@ -16,7 +16,7 @@ import 'package:path_provider/path_provider.dart';
 class DatabaseHelper {
 
   static final _databaseName = "flutter_tt.db";
-  static final _databaseVersion = 2;
+  static final _databaseVersion = 4;
   static Database _database;
 
   DatabaseHelper._internal();
@@ -42,6 +42,7 @@ class DatabaseHelper {
   _onCreate(Database db, int version) async{
     await UserDao().initTable(db, version);
     await GroupDao().initTable(db, version);
+    await SessionDao().initTable(db, version);
   }
 
 
@@ -88,13 +89,13 @@ abstract class BaseDao<T extends BaseItem> {
     await db.execute('DROP TABLE IF EXISTS ' + tableName());
   }
 
-  Future<List> queryAllWith(String where) async {
+  Future<List> queryAllWith(String where,{List<dynamic> args}) async {
     Database db = await DatabaseHelper.instance.database;
     List result;
     if(where == null) {
       result = await db.rawQuery("select * FROM " + tableName());
     }else {
-      result = await db.rawQuery("select * FROM " + tableName() + "  where " + where);
+      result = await db.rawQuery("select * FROM " + tableName() + "  where " + where, args);
     }
     return result.map((item)=>buildItem(item)).toList();
   }
@@ -124,7 +125,6 @@ abstract class PrimaryDao<T extends BaseItem>  extends BaseDao{
 
   Future<int> updateOrInsert(T item) async {
     Map mapData = item.toMap();
-    print(mapData);
     T result = await queryPrimarykey(mapData[primarykey()]);
     Database db = await DatabaseHelper.instance.database;
     if(result != null) {
@@ -134,15 +134,15 @@ abstract class PrimaryDao<T extends BaseItem>  extends BaseDao{
     return save(item);
   }
 
-  Future<T> queryPrimarykey(int id) async {
-    List result = await queryAllWith(primarykey() +  ' = $id limit 1');
+  Future<T> queryPrimarykey(var id) async {
+    List result = await queryAllWith(primarykey() +  ' = ? limit 1',args:[id]);
     if(result.length > 0) {
       return result[0];
     }
     return null;
   }
 
-  Future<int>  delete(String id) async{
+  Future<int>  delete(var id) async{
     Database db = await DatabaseHelper.instance.database;
     return await db.delete(tableName(), where: primarykey() + ' = ?', whereArgs: [id]);
   }
