@@ -16,8 +16,8 @@ A Flutter project for teamtalk.
 - [x] 本地化储存 *(in progress)*
 - [x] 新消息通知以及加载
 - [x] 上次登录信息保留
-- [ ] 未读消息数显示
-- [ ] 动态表情显示以及发送
+- [x] 未读消息数显示 *(in progress)*
+- [x] 动态表情显示以及发送 *(in progress)*
 - [x] 个人主页
 - [ ] 语音发送
 - [ ] 图片发送
