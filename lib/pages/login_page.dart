@@ -46,9 +46,13 @@ class _LoginPageState extends State<LoginPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var name = prefs.getString("login_username");
     var password = prefs.getString("login_password");
-    print(name);
-    print(password);
-    if(name != null && password != null) {
+    var diableAutoLogin =  prefs.getBool("diable_autoLogin");
+    if(diableAutoLogin == null) {
+      diableAutoLogin = false;
+    }
+    // print(name);
+    // print(password);
+    if(name != null && password != null && !diableAutoLogin) {
       usernameTextFieldController.text = name;
       passwordTextFieldController.text = password;
       setState(() {

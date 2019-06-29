@@ -10,6 +10,8 @@ import 'package:flutter_tt/models/dao.dart';
 import 'package:flutter_tt/models/helper.dart';
 import 'package:flutter_tt/utils/utils.dart';
 import 'login_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class PersonalPage extends StatefulWidget {
   @override
@@ -19,6 +21,8 @@ class PersonalPage extends StatefulWidget {
 class _PersonalPageState extends State<PersonalPage> {
 
   _loginOut() async{
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    prefs.setBool("diable_autoLogin", true);
     await IMHelper.defaultInstance().loginOut();
     navigatePage(context, new LoginPage());
   }

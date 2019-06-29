@@ -48,7 +48,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-    
+
     WidgetsBinding.instance.addObserver(this);
     _textFocusNode.addListener(() {
       //print("_textFocusNode.hasFocus:" + _textFocusNode.hasFocus.toString());
@@ -56,15 +56,13 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         setState(() {
           _showPanel = false;
         });
-        
+
         //_scrollToEnd(10);
       } else {}
       //print(MediaQuery.of(context).viewInsets.bottom);
     });
-    
-    _onRefresh().then((result) {
 
-    });
+    _onRefresh().then((result) {});
     subscription = imHelper.eventBus.on<NewMsgEvent>().listen((event) {
       _onEvent(event);
     });
@@ -100,10 +98,8 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       }
     } else {
       print("KEYBOARD HIDDEN");
-      if(_showPanel){
-        setState(() {
-          
-        });
+      if (_showPanel) {
+        setState(() {});
       }
     }
   }
@@ -117,7 +113,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
     //print("scroll to :$scrollValue");
 
-    if(animationTime == 0) {
+    if (animationTime == 0) {
       _controller.jumpTo(scrollValue);
       return;
     }
@@ -144,10 +140,10 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         setState(() {
           if (size == 0) {
             _scrollToEnd(0);
-            if(allMsgs.length > 0) {
-                MessageEntry last = allMsgs.last;
-                imHelper.clearUnReadCntBySessionKey(session.sessionKey);
-                imHelper.sureReadMessage(last);
+            if (allMsgs.length > 0) {
+              MessageEntry last = allMsgs.last;
+              imHelper.clearUnReadCntBySessionKey(session.sessionKey);
+              imHelper.sureReadMessage(last);
             }
           }
         });
@@ -320,6 +316,49 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     });
   }
 
+  Widget _buildEmojiPannel(double maxHeight) {
+    int count = EmojiUtil.YAYAMAP.length;
+    int pageItemsCount = 8;
+    int pageCount = count ~/ pageItemsCount;
+    if (count % pageItemsCount > 0) {
+      pageCount = pageCount + 1;
+    }
+    
+    return Container(
+        height: maxHeight,
+        child: Center(child: PageView.builder(
+          itemBuilder: (context, position) {
+            int emojiCount = pageItemsCount;
+            if ((position + 1) * emojiCount > count) {
+              emojiCount = count - position * emojiCount;
+            }
+            print(emojiCount);
+            return Container(
+                child: GridView.builder(
+                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 4,
+                    childAspectRatio:1.2,
+                    
+                  ),
+                  itemBuilder: (context, gPosition) {
+                    String yayaEmoji = EmojiUtil.YAYABASEPATH +
+                        EmojiUtil.YAYAMAP.values
+                            .elementAt(gPosition + position * pageItemsCount);
+                    print(yayaEmoji);
+                    return Center(
+                        child: Image(
+                          image: AssetImage(yayaEmoji),
+                          fit: BoxFit.cover,
+                        ));
+                  },
+                  itemCount: emojiCount,
+                ));
+          },
+          itemCount: pageCount,
+        ),) 
+        );
+  }
+
   Widget _textComposerWidget() {
     return new IconTheme(
       data: new IconThemeData(color: Colors.blue),
@@ -339,10 +378,9 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
                       decoration:
                           new InputDecoration.collapsed(hintText: "输入消息"),
                       controller: textEditingController,
-                      focusNode: _textFocusNode,                      
+                      focusNode: _textFocusNode,
                       textInputAction: TextInputAction.send,
                       onFieldSubmitted: _handleSubmit,
-                      
                     ),
                   ),
                   new Container(
@@ -353,14 +391,13 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
                       onPressed: () {
                         _showPanel = !_showPanel;
                         if (_showPanel) {
-                          if(_isKeyboardOpen) {
-                            FocusScope.of(context).requestFocus(new FocusNode());//show panel after hide keyboard
+                          if (_isKeyboardOpen) {
+                            FocusScope.of(context).requestFocus(
+                                new FocusNode()); //show panel after hide keyboard
                             return;
                           }
                         }
-                        setState(() {
-                              
-                        });
+                        setState(() {});
                       },
                     ),
                   ),
@@ -372,26 +409,30 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
                       onPressed: () {
                         _showPanel = !_showPanel;
                         if (_showPanel) {
-                          if(_isKeyboardOpen) {
-                            FocusScope.of(context).requestFocus(new FocusNode());//show panel after hide keyboard
+                          if (_isKeyboardOpen) {
+                            FocusScope.of(context).requestFocus(
+                                new FocusNode()); //show panel after hide keyboard
                             return;
                           }
                         }
-                        setState(() {
-                              
-                        });
+                        setState(() {});
                       },
                     ),
                   )
                 ],
               ),
-              SizedBox(
-                height: _showPanel ? 200 : 0,
+              Container(
+                height: _showPanel ? 202 : 0,
                 child: Column(
                   children: <Widget>[
                     Divider(
                       height: 1.0,
                     ),
+                    _showPanel
+                        ? _buildEmojiPannel(200)
+                        : Divider(
+                            height: 0.0,
+                          ),
                   ],
                 ),
               )
