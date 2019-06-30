@@ -92,12 +92,12 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
   _onKeyboardChanged(bool isVisible) {
     if (isVisible) {
-      print("KEYBOARD VISIBLE");
+      //print("KEYBOARD VISIBLE");
       if (_textFocusNode.hasFocus) {
         _controller.jumpTo(_controller.position.maxScrollExtent + 100);
       }
     } else {
-      print("KEYBOARD HIDDEN");
+      //print("KEYBOARD HIDDEN");
       if (_showPanel) {
         setState(() {});
       }
@@ -285,14 +285,8 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         ));
   }
 
-  void _handleSubmit(String text) {
-    text = textEditingController.text;
-    FocusScope.of(context).requestFocus(_textFocusNode);
-    if (text == null || text.length == 0) {
-      Toast.show("发送内容不能为空", context,
-          duration: Toast.LENGTH_SHORT, gravity: Toast.CENTER);
-      return;
-    }
+  //no check
+  void _sendText(String text){
     MessageEntry messageEntry =
         imHelper.buildTextMsg(text, session.sessionId, session.sessionType);
     messageEntry.sendStatus = IMMsgSendStatus.Sending;
@@ -300,7 +294,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     setState(() {
       _scrollToEnd(0);
     });
-    textEditingController.clear();
+    
 
     imHelper
         .sendTextMsg(text, session.sessionId, session.sessionType)
@@ -316,6 +310,19 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     });
   }
 
+  void _handleSubmit(String text) {
+    text = textEditingController.text;
+    FocusScope.of(context).requestFocus(_textFocusNode);
+    if (text == null || text.length == 0) {
+      Toast.show("发送内容不能为空", context,
+          duration: Toast.LENGTH_SHORT, gravity: Toast.CENTER);
+      return;
+    }
+    textEditingController.clear();
+    _sendText(text);
+    
+  }
+
   Widget _buildEmojiPannel(double maxHeight) {
     int count = EmojiUtil.YAYAMAP.length;
     int pageItemsCount = 8;
@@ -323,40 +330,45 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     if (count % pageItemsCount > 0) {
       pageCount = pageCount + 1;
     }
-    
+
     return Container(
         height: maxHeight,
-        child: Center(child: PageView.builder(
-          itemBuilder: (context, position) {
-            int emojiCount = pageItemsCount;
-            if ((position + 1) * emojiCount > count) {
-              emojiCount = count - position * emojiCount;
-            }
-            print(emojiCount);
-            return Container(
-                child: GridView.builder(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 4,
-                    childAspectRatio:1.2,
-                    
-                  ),
-                  itemBuilder: (context, gPosition) {
-                    String yayaEmoji = EmojiUtil.YAYABASEPATH +
-                        EmojiUtil.YAYAMAP.values
-                            .elementAt(gPosition + position * pageItemsCount);
-                    print(yayaEmoji);
-                    return Center(
-                        child: Image(
-                          image: AssetImage(yayaEmoji),
-                          fit: BoxFit.cover,
-                        ));
-                  },
-                  itemCount: emojiCount,
-                ));
-          },
-          itemCount: pageCount,
-        ),) 
-        );
+        child: Center(
+          child: PageView.builder(
+            itemBuilder: (context, position) {
+              int emojiCount = pageItemsCount;
+              if ((position + 1) * emojiCount > count) {
+                emojiCount = count - position * emojiCount;
+              }
+              //print(emojiCount);
+              return Container(
+                  child: GridView.builder(
+                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 4,
+                  childAspectRatio: 1.2,
+                ),
+                itemBuilder: (context, gPosition) {
+                  int emojiIndex = gPosition + position * pageItemsCount;
+                  String yayaEmoji = EmojiUtil.YAYABASEPATH +
+                      EmojiUtil.YAYAMAP.values
+                          .elementAt(emojiIndex);
+                  //print(yayaEmoji);
+                  return Center(
+                      child: GestureDetector(
+                          onTap: () {
+                            _sendText(EmojiUtil.YAYAMAP.keys.elementAt(emojiIndex));
+                          },
+                          child: Image(
+                            image: AssetImage(yayaEmoji),
+                            fit: BoxFit.cover,
+                          )));
+                },
+                itemCount: emojiCount,
+              ));
+            },
+            itemCount: pageCount,
+          ),
+        ));
   }
 
   Widget _textComposerWidget() {
