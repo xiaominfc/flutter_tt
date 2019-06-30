@@ -50,8 +50,6 @@ class _LoginPageState extends State<LoginPage> {
     if(diableAutoLogin == null) {
       diableAutoLogin = false;
     }
-    // print(name);
-    // print(password);
     if(name != null && password != null && !diableAutoLogin) {
       usernameTextFieldController.text = name;
       passwordTextFieldController.text = password;
@@ -92,8 +90,6 @@ class _LoginPageState extends State<LoginPage> {
     }
     var imClient = new IMClient()
         .init(username, password, loginServerUrl);
-        //.init(
-        //    username, password, "http://im.jingnongfucang.cn:8080/msg_server");
     imClient.requesetMsgSever().then((serverInfo) {
       if (serverInfo == null) {
         _loginFailed(msg:'获取msg_server失败:' + loginServerUrl);
@@ -204,7 +200,6 @@ class _LoginPageState extends State<LoginPage> {
       padding: const EdgeInsets.fromLTRB(30, 60, 30, 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
-        //mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           usernameTextField,
           SizedBox(height: 10.0),
@@ -216,11 +211,8 @@ class _LoginPageState extends State<LoginPage> {
     ));
     return Scaffold(
       appBar: AppBar(
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
         title: Text("Login"),
         actions: <Widget>[
-            // action button
             IconButton(
               icon: Icon(Icons.settings),
               onPressed: () {
