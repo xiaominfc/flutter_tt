@@ -50,13 +50,15 @@ class _LoginPageState extends State<LoginPage> {
     if(diableAutoLogin == null) {
       diableAutoLogin = false;
     }
-    if(name != null && password != null && !diableAutoLogin) {
+    if(name != null && password != null) {
       usernameTextFieldController.text = name;
       passwordTextFieldController.text = password;
       setState(() {
         
       });
-      _doLogin();
+      if(!diableAutoLogin) {
+        _doLogin();
+      }
     }
   }
 
@@ -101,6 +103,7 @@ class _LoginPageState extends State<LoginPage> {
         if (loginResult.result) {
           prefs.setString('login_username', username);
           prefs.setString('login_password', password);
+          prefs.setBool("diable_autoLogin",false);
           IMHelper.defaultInstance().initData().then((result){
             _showHome();
           });
