@@ -36,8 +36,8 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   bool _showPanel = false;
   _MessagePageState(this.session);
   //EventBus 回调
-  void _onEvent(event) async {
-    if (mounted && event.msg.sessionId == session.sessionId) {
+  void _onEvent(NewMsgEvent event) async {
+    if (mounted && event.sessionKey == session.sessionKey) {
       allMsgs.add(event.msg);
       imHelper.sureReadMessage(event.msg);
       setState(() {});
@@ -48,7 +48,6 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
-
     WidgetsBinding.instance.addObserver(this);
     _textFocusNode.addListener(() {
       //print("_textFocusNode.hasFocus:" + _textFocusNode.hasFocus.toString());
@@ -63,6 +62,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     });
 
     _onRefresh().then((result) {});
+    imHelper.setShowSession(session);
     subscription = imHelper.eventBus.on<NewMsgEvent>().listen((event) {
       _onEvent(event);
     });
@@ -72,6 +72,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     subscription.cancel();
+    imHelper.resetShowSession(session);
     super.dispose();
   }
 

@@ -5,11 +5,15 @@
 // Distributed under terms of the MIT license.
 //
 
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_tt/utils/utils.dart';
 import '../models/dao.dart';
 import 'message_page.dart';
 import '../models/helper.dart';
+import '../utils/utils.dart';
+
 
 class ChatPage extends StatefulWidget {
   @override
@@ -21,8 +25,12 @@ class ChatPage extends StatefulWidget {
 
 class _ChatPageState extends State<ChatPage> {
   List _sessions;
+
+  StreamSubscription subscription;
+
+  IMHelper imHelper = IMHelper.defaultInstance();
   void updateData() async {
-    var sessions = await IMHelper.defaultInstance().loadLocalSessions();
+    var sessions = await imHelper.loadLocalSessions();
     bool force = true;
     if (sessions.length > 0) {
       setState(() {
@@ -30,28 +38,50 @@ class _ChatPageState extends State<ChatPage> {
       });
       force = false;
     }
-    IMHelper.defaultInstance()
+    imHelper
         .loadSessionsFromServer(force: force)
         .then((result) async {
       if (result > 0) {
-        _sessions = await IMHelper.defaultInstance().loadLocalSessions();
+        _sessions = await imHelper.loadLocalSessions();
       }
       await _updateUnReadCnt();
       setState(() {});
     });
   }
 
+
+  void _onEvent(NewMsgEvent event) async{
+    if(imHelper.showSessionEntry == null || event.sessionKey != imHelper.showSessionEntry.sessionKey) {
+        SessionEntry sessionEntry = imHelper.getSessionBySessionKey(event.sessionKey);
+        if(sessionEntry != null) {
+          sessionEntry.updatedTime = event.msg.time;
+          sessionEntry.lastMsg = imHelper.decodeMsgData(event.msg.msgData, event.msg.msgType);
+          sessionEntry.unreadCnt = sessionEntry.unreadCnt + 1;
+          setState(() {
+            
+          });
+        }
+    }
+  }
+
   @override
   void initState() {
-    print("chat init");
     super.initState();
     updateData();
+    subscription = imHelper.eventBus.on<NewMsgEvent>().listen((event) {
+      _onEvent(event);
+    });
+  }
+
+  @override
+  void dispose(){
+    subscription.cancel();
+    super.dispose();
   }
 
   @override
   void deactivate() {
     super.deactivate();
-    //print("chat deactivate");
   }
   
 
@@ -63,6 +93,32 @@ class _ChatPageState extends State<ChatPage> {
     navigatePushPage(this.context, MessagePage(_sessions[position]));
   }
 
+
+  Widget buildTailWidget(int unReadCnt, int updateTime){
+    DateTime date = new DateTime.fromMillisecondsSinceEpoch(updateTime * 1000);
+    return  Row(
+        mainAxisSize:MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.end,
+        crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Text(dateFormat(date,"")),
+        unReadCnt > 0
+                        ? Container(
+                            child: Center(child: Text(unReadCnt.toString(),style: TextStyle(color: Colors.white))),
+                            width: 20,
+                            decoration: new BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: Colors.red,
+                            ),
+                          )
+                        : Icon(
+                            Icons.arrow_forward_ios,
+                          )
+      ],
+    );
+
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,9 +128,7 @@ class _ChatPageState extends State<ChatPage> {
             itemCount: _sessions == null ? 0 : _sessions.length,
             itemBuilder: (context, position) {
               SessionEntry sessionEntry = _sessions[position];
-              int unReadCnt = IMHelper.defaultInstance()
-                  .getUnreadCntBySessionKey(sessionEntry.sessionKey);
-
+              int unReadCnt = sessionEntry.unreadCnt;
               return Column(children: <Widget>[
                 GestureDetector(
                   onTap: () => _onTap(position),
@@ -88,18 +142,7 @@ class _ChatPageState extends State<ChatPage> {
                     title: Text(sessionEntry.sessionName,
                         style: Theme.of(context).textTheme.subhead),
                     subtitle: new Text(sessionEntry.lastMsg, maxLines: 1),
-                    trailing: unReadCnt > 0
-                        ? Container(
-                            child: Center(child: Text(unReadCnt.toString(),style: TextStyle(color: Colors.white))),
-                            width: 20,
-                            decoration: new BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.red,
-                            ),
-                          )
-                        : Icon(
-                            Icons.arrow_forward_ios,
-                          ),
+                    trailing: buildTailWidget(unReadCnt, sessionEntry.updatedTime),
                   ),
                 ),
                 Divider(

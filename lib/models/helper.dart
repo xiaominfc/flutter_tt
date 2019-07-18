@@ -18,7 +18,15 @@ import 'package:event_bus/event_bus.dart';
 
 class NewMsgEvent{
   MessageEntry msg;
-  NewMsgEvent(this.msg);
+  String sessionKey;
+  NewMsgEvent(MessageEntry _msg){
+    this.msg = _msg;
+    if(msg.msgType == IMMsgType.MSG_TYPE_GROUP_AUDIO || msg.msgType == IMMsgType.MSG_TYPE_GROUP_TEXT) {
+      sessionKey = msg.sessionId.toString() + "_" + IMSeesionType.Group.toString();
+    }else {
+      sessionKey = msg.sessionId.toString() + "_" + IMSeesionType.Person.toString();
+    }
+  }
 }
 
 int currentUnixTime(){
@@ -50,6 +58,8 @@ class IMHelper {
   Map<String, SessionEntry> sessionMap = new Map();
   Map<String,int> unreadInfoMap = new Map();
   var imClient = new IMClient();
+  
+  SessionEntry showSessionEntry;
 
   UserEntry loginUserEntry;
 
@@ -59,6 +69,15 @@ class IMHelper {
 
   loginUserId(){
     return imClient.userID();
+  }
+
+
+  setShowSession(SessionEntry session){
+    showSessionEntry = session;
+  }
+
+  resetShowSession(SessionEntry session) {
+    showSessionEntry = null;
   }
 
   loadLocalFriends({update = true}) async {
@@ -92,6 +111,11 @@ class IMHelper {
     });
     return sessions;
   }
+
+  getSessionBySessionKey(String sessionKey) {
+    return sessionMap[sessionKey];
+  }
+
 
   initData() async {
     const LASTUSERIDKEY = "lastUserId";
@@ -247,21 +271,25 @@ class IMHelper {
       for(int i = 0; i < length; i ++){
         UnreadInfo unreadinfo = result.unreadinfoList[i];
         String sessionKey = unreadinfo.sessionId.toString() + "_" + unreadinfo.sessionType.value.toString();
-        unreadInfoMap[sessionKey] = unreadinfo.unreadCnt;
+        SessionEntry sessionEntry = getSessionBySessionKey(sessionKey);
+        //unreadInfoMap[sessionKey] = unreadinfo.unreadCnt;
+        
+        if(sessionEntry != null) {
+          sessionEntry.lastMsg = decodeMsgData(unreadinfo.latestMsgData, unreadinfo.latestMsgType.value);
+          sessionEntry.unreadCnt = unreadinfo.unreadCnt;
+        }else {
+          //手动创建
+        }
       }
     }
     print(unreadInfoMap);
   }
 
-  int getUnreadCntBySessionKey(String sessionKey) {
-    if(unreadInfoMap.containsKey(sessionKey)){
-      return unreadInfoMap[sessionKey];
-    }
-    return 0;
-  }
 
   void clearUnReadCntBySessionKey(String sessionKey){
-    unreadInfoMap.remove(sessionKey);
+    SessionEntry sessionEntry = getSessionBySessionKey(sessionKey);
+    sessionEntry.unreadCnt = 0;
+    //unreadInfoMap.remove(sessionKey);
   }
 
   sureReadMessage(MessageEntry msg) async{

@@ -159,11 +159,13 @@ class SessionEntry extends BaseItem {
   String avatar;
   int sessionType;
   int updatedTime;
+  int unreadCnt;
 
   SessionEntry([int _sessionId,int _sessionType]){
     this.sessionId = _sessionId;
     this.sessionType = _sessionType;
     this.sessionKey = _sessionId.toString() + "_" + _sessionType.toString();
+    this.unreadCnt = 0;
   }
 
   @override
@@ -180,6 +182,7 @@ class SessionEntry extends BaseItem {
     sessionName = map['sessionName'];
     sessionType = map['sessionType'];
     updatedTime = map['updatedTime'];
+    this.unreadCnt = 0;
     return this;
   }
 }

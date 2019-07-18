@@ -26,3 +26,8 @@ void navigatePushPage(BuildContext context, Widget widget){
     print(e);
   }
 }
+
+
+String dateFormat(DateTime dateTime,String format){
+  return dateTime.year.toString() + "/" + dateTime.month.toString() + "/" + dateTime.day.toString() + " " + dateTime.hour.toString() + ":" + dateTime.minute.toString();
+}
