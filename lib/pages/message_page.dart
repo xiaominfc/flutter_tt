@@ -39,6 +39,9 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   void _onEvent(NewMsgEvent event) async {
     if (mounted && event.sessionKey == session.sessionKey) {
       allMsgs.add(event.msg);
+      session.lastMsg =
+          imHelper.decodeMsgData(event.msg.msgData, event.msg.msgType);
+      session.updatedTime = event.msg.time;
       imHelper.sureReadMessage(event.msg);
       setState(() {});
       _scrollToEnd(10);
@@ -61,7 +64,15 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       //print(MediaQuery.of(context).viewInsets.bottom);
     });
 
-    _onRefresh().then((result) {});
+    _onRefresh().then((result) {
+      Timer(Duration(milliseconds: 1000), () {
+        //这个地方处理的不好
+        //print("max:" + _controller.position.maxScrollExtent.toString());
+        _scrollToEnd(0);
+        //
+        // _controller.jumpTo(_controller.position.maxScrollExtent + 100);
+      });
+    });
     imHelper.setShowSession(session);
     subscription = imHelper.eventBus.on<NewMsgEvent>().listen((event) {
       _onEvent(event);
@@ -111,14 +122,12 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     if (scrollValue < 10) {
       scrollValue = 1000000;
     }
-
     //print("scroll to :$scrollValue");
 
     if (animationTime == 0) {
       _controller.jumpTo(scrollValue);
       return;
     }
-
     _controller.animateTo(scrollValue,
         duration: Duration(milliseconds: animationTime), curve: Curves.easeIn);
   }
@@ -128,7 +137,8 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     if (allMsgs.length > 0) {
       msgBeginId = allMsgs[0].msgId - 1;
       if (msgBeginId <= 0) {
-        setState(() {});
+        //setState(() {});
+        return;
       }
     }
     imHelper
@@ -140,7 +150,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         allMsgs.insertAll(0, msgs.reversed);
         setState(() {
           if (size == 0) {
-            _scrollToEnd(0);
+            //_scrollToEnd(0);
             if (allMsgs.length > 0) {
               MessageEntry last = allMsgs.last;
               imHelper.clearUnReadCntBySessionKey(session.sessionKey);
@@ -287,15 +297,15 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   }
 
   //no check
-  void _sendText(String text){
+  void _sendText(String text) {
     MessageEntry messageEntry =
         imHelper.buildTextMsg(text, session.sessionId, session.sessionType);
     messageEntry.sendStatus = IMMsgSendStatus.Sending;
+    messageEntry.time = currentUnixTime();
     allMsgs.add(messageEntry);
     setState(() {
       _scrollToEnd(0);
     });
-    
 
     imHelper
         .sendTextMsg(text, session.sessionId, session.sessionType)
@@ -304,6 +314,8 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         if (result != null) {
           messageEntry.msgId = result.msgId;
           messageEntry.sendStatus = IMMsgSendStatus.Ok;
+          session.lastMsg = result.msgText;
+          session.updatedTime = result.time;
         } else {
           messageEntry.sendStatus = IMMsgSendStatus.Failed;
         }
@@ -321,7 +333,6 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     }
     textEditingController.clear();
     _sendText(text);
-    
   }
 
   Widget _buildEmojiPannel(double maxHeight) {
@@ -351,13 +362,13 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
                 itemBuilder: (context, gPosition) {
                   int emojiIndex = gPosition + position * pageItemsCount;
                   String yayaEmoji = EmojiUtil.YAYABASEPATH +
-                      EmojiUtil.YAYAMAP.values
-                          .elementAt(emojiIndex);
+                      EmojiUtil.YAYAMAP.values.elementAt(emojiIndex);
                   //print(yayaEmoji);
                   return Center(
                       child: GestureDetector(
                           onTap: () {
-                            _sendText(EmojiUtil.YAYAMAP.keys.elementAt(emojiIndex));
+                            _sendText(
+                                EmojiUtil.YAYAMAP.keys.elementAt(emojiIndex));
                           },
                           child: Image(
                             image: AssetImage(yayaEmoji),

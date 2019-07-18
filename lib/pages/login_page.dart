@@ -197,7 +197,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
 
-    var center = Center(
+    var loginContentWidget = Center(
         child: Padding(
       padding: const EdgeInsets.fromLTRB(30, 60, 30, 0),
       child: Column(
@@ -224,7 +224,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
       body: Stack(
         children: <Widget>[
-          center,
+          loginContentWidget,
           Center(
               child: logining
                   ? CircularProgressIndicator(

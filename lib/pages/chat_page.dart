@@ -100,10 +100,9 @@ class _ChatPageState extends State<ChatPage> {
         mainAxisSize:MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.end,
         crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Text(dateFormat(date,"")),
-        unReadCnt > 0
-                        ? Container(
+        children: <Widget>[
+          Text(dateFormat(date,"")),
+          unReadCnt > 0 ? Container(
                             child: Center(child: Text(unReadCnt.toString(),style: TextStyle(color: Colors.white))),
                             width: 20,
                             decoration: new BoxDecoration(

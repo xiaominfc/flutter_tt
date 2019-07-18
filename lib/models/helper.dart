@@ -182,7 +182,7 @@ class IMHelper {
           ids.add(groupVerion.groupId);
         }
       });
-
+      print(ids);
       if (ids.length > 0) {
         result = await imClient.requestGroupInfoByIds(ids);
         if (result != null && result.groupInfoList.length > 0) {
@@ -197,6 +197,8 @@ class IMHelper {
             await groupDao.save(entry);
             groupMap[groupInfo.groupId] = entry;
           }
+        }else {
+          print("not group info");
         }
       }
     }
@@ -205,6 +207,8 @@ class IMHelper {
 
   loadMessagesByServer(int sessionId, int type,
       {beginMsgId = 0, cnt = 20}) async {
+
+    //print('load msgs by Id:' + beginMsgId.toString());
     IMGetMsgListRsp result;
     if (type == IMSeesionType.Person) {
       result = await imClient.loadSingleChatMsgs(sessionId, beginMsgId, cnt);
@@ -213,8 +217,8 @@ class IMHelper {
     }
     List<MessageEntry> msgs = List();
     if (result != null && result.msgList != null) {
-      result.msgList.forEach((MsgInfo msg) {
-        //String msgText = decodeMsgData(msg.msgData, msg.msgType);
+      for(int i=0; i < result.msgList.length; i ++){
+        MsgInfo msg = result.msgList[i];
         var messageEntry = new MessageEntry(
             fromId: msg.fromSessionId,
             msgData: msg.msgData,
@@ -223,7 +227,7 @@ class IMHelper {
             time: msg.createTime,
             msgType: msg.msgType.value);
         msgs.add(messageEntry);
-      });
+      }
     }
     return msgs;
   }
@@ -293,8 +297,6 @@ class IMHelper {
   }
 
   sureReadMessage(MessageEntry msg) async{
-    print("sureReadMessage");
-    print(msg);
     var sessionType = SessionType.SESSION_TYPE_GROUP;
 
     if(msg.msgType == IMMsgType.MSG_TYPE_SINGLE_AUDIO || msg.msgType == IMMsgType.MSG_TYPE_SINGLE_TEXT) {
@@ -375,8 +377,10 @@ class IMHelper {
     }
     if(result != null) {
       MessageEntry msg = MessageEntry(msgId: result.msgId, msgData: utf8.encode(text), fromId:result.userId,msgType: msgType);
+      msg.msgText = text;
+      msg.time = currentUnixTime();
     //print(result);
-    return msg;
+      return msg;
     }
     return null;
     
