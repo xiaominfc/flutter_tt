@@ -17,10 +17,7 @@ import '../utils/utils.dart';
 
 class ChatPage extends StatefulWidget {
   @override
-  _ChatPageState createState() {
-    print('createState');
-    return new _ChatPageState();
-  }
+  _ChatPageState createState() =>_ChatPageState();
 }
 
 class _ChatPageState extends State<ChatPage> {

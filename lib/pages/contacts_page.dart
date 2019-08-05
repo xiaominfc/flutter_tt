@@ -88,9 +88,7 @@ class SelfToolsBar extends StatelessWidget {
 
 class ContactsPage extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() {
-    return _ContactsPageState();
-  }
+  State<StatefulWidget> createState() =>_ContactsPageState();
 }
 
 class _ContactsPageState extends State<ContactsPage> {

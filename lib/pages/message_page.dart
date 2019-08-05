@@ -20,7 +20,7 @@ class MessagePage extends StatefulWidget {
   MessagePage(this.session);
 
   @override
-  createState() => _MessagePageState(this.session);
+  createState() => _MessagePageState();
 }
 
 class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
@@ -30,13 +30,14 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       new TextEditingController();
   FocusNode _textFocusNode = FocusNode();
   final ScrollController _controller = ScrollController();
-  SessionEntry session;
+  //SessionEntry session;
   List<MessageEntry> allMsgs = List();
   StreamSubscription subscription;
   bool _showPanel = false;
-  _MessagePageState(this.session);
+  //_MessagePageState(this.session);
   //EventBus 回调
   void _onEvent(NewMsgEvent event) async {
+    SessionEntry session = widget.session;
     if (mounted && event.sessionKey == session.sessionKey) {
       allMsgs.add(event.msg);
       session.lastMsg =
@@ -51,6 +52,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    SessionEntry session = widget.session;
     WidgetsBinding.instance.addObserver(this);
     _textFocusNode.addListener(() {
       //print("_textFocusNode.hasFocus:" + _textFocusNode.hasFocus.toString());
@@ -81,6 +83,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    SessionEntry session = widget.session;
     WidgetsBinding.instance.removeObserver(this);
     subscription.cancel();
     imHelper.resetShowSession(session);
@@ -133,6 +136,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   }
 
   Future<Null> _onRefresh() async {
+    SessionEntry session = widget.session;
     int msgBeginId = 0;
     if (allMsgs.length > 0) {
       msgBeginId = allMsgs[0].msgId - 1;
@@ -142,7 +146,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       }
     }
     imHelper
-        .loadMessagesByServer(this.session.sessionId, this.session.sessionType,
+        .loadMessagesByServer(session.sessionId, session.sessionType,
             beginMsgId: msgBeginId)
         .then((msgs) {
       if (msgs != null && msgs.length > 0) {
@@ -298,6 +302,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
   //no check
   void _sendText(String text) {
+    SessionEntry session = widget.session;
     MessageEntry messageEntry =
         imHelper.buildTextMsg(text, session.sessionId, session.sessionType);
     messageEntry.sendStatus = IMMsgSendStatus.Sending;
@@ -477,6 +482,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
+    SessionEntry session = widget.session;
     return Scaffold(
         appBar: AppBar(title: Text(session.sessionName)),
         body: Container(
