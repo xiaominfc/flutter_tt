@@ -155,8 +155,6 @@ class SessionEntry extends BaseItem {
   String sessionKey;
   int sessionId;
   String lastMsg;
-  String sessionName;
-  String avatar;
   int sessionType;
   int updatedTime;
   int unreadCnt;
@@ -170,16 +168,14 @@ class SessionEntry extends BaseItem {
 
   @override
   Map<String, dynamic> toMap() {    
-    return {'sessionKey':sessionKey,'sessionId':sessionId, 'sessionName':sessionName, 'lastMsg':lastMsg, 'avatar':avatar, 'sessionType':sessionType,'updatedTime': updatedTime};
+    return {'sessionKey':sessionKey,'sessionId':sessionId,  'lastMsg':lastMsg, 'sessionType':sessionType,'updatedTime': updatedTime};
   }
 
   @override
   fromMap(Map<String, dynamic> map) {
     sessionKey = map['sessionKey'];
     sessionId = map['sessionId'];
-    avatar = map['avatar'];
     lastMsg = map['lastMsg'];
-    sessionName = map['sessionName'];
     sessionType = map['sessionType'];
     updatedTime = map['updatedTime'];
     this.unreadCnt = 0;
@@ -201,7 +197,7 @@ class SessionDao extends PrimaryDao<SessionEntry>{
   @override
   initTable(Database db, int version) async{
     dropTable(db, version);
-    await db.execute('CREATE TABLE '+tableName() + ' (sessionKey TEXT PRIMARY KEY, sessionName TEXT, avatar TEXT, sessionId INTEGER, sessionType INTEGER, lastMsg TEXT, updatedTime INTEGER)');
+    await db.execute('CREATE TABLE '+tableName() + ' (sessionKey TEXT PRIMARY KEY, sessionId INTEGER, sessionType INTEGER, lastMsg TEXT, updatedTime INTEGER)');
   }
 
   @override

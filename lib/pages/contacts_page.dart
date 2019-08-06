@@ -11,8 +11,6 @@ import '../models/helper.dart';
 import './message_page.dart';
 import '../utils/utils.dart';
 
-
-
 class SelfToolsBar extends StatelessWidget {
   final TextStyle textStyle = TextStyle(fontSize: 16, color: Colors.white);
   double radius = 16.0;
@@ -72,7 +70,8 @@ class SelfToolsBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return Center(
+        child: Container(
       decoration: new BoxDecoration(
         border: new Border.all(color: Colors.white, width: 0.5),
         borderRadius: new BorderRadius.horizontal(
@@ -82,13 +81,13 @@ class SelfToolsBar extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: widgets,
       ),
-    );
+    ));
   }
 }
 
 class ContactsPage extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() =>_ContactsPageState();
+  State<StatefulWidget> createState() => _ContactsPageState();
 }
 
 class _ContactsPageState extends State<ContactsPage> {
@@ -198,8 +197,6 @@ class _ContactsPageState extends State<ContactsPage> {
     SessionEntry entry = imHelper.getSessionBySessionKey(sessionKey);
     if (entry == null) {
       entry = SessionEntry(group.id, IMSeesionType.Group);
-      entry.avatar = group.avatar;
-      entry.sessionName = group.name;
     }
     navigatePushPage(this.context, MessagePage(entry));
   }
@@ -212,9 +209,6 @@ class _ContactsPageState extends State<ContactsPage> {
       SessionEntry entry = imHelper.getSessionBySessionKey(sessionKey);
       if (entry == null) {
         entry = SessionEntry(user.id, IMSeesionType.Person);
-        entry.avatar = user.avatar;
-        //entry.sessionId = user.id;
-        entry.sessionName = user.name;
         //entry.sessionType = IMSeesionType.Person;
       }
       navigatePushPage(this.context, MessagePage(entry));

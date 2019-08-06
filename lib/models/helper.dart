@@ -15,28 +15,30 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:event_bus/event_bus.dart';
 
-
-class NewMsgEvent{
+class NewMsgEvent {
   MessageEntry msg;
   String sessionKey;
-  NewMsgEvent(MessageEntry _msg){
+  NewMsgEvent(MessageEntry _msg) {
     this.msg = _msg;
-    if(msg.msgType == IMMsgType.MSG_TYPE_GROUP_AUDIO || msg.msgType == IMMsgType.MSG_TYPE_GROUP_TEXT) {
-      sessionKey = msg.sessionId.toString() + "_" + IMSeesionType.Group.toString();
-    }else {
-      sessionKey = msg.sessionId.toString() + "_" + IMSeesionType.Person.toString();
+    if (msg.msgType == IMMsgType.MSG_TYPE_GROUP_AUDIO ||
+        msg.msgType == IMMsgType.MSG_TYPE_GROUP_TEXT) {
+      sessionKey =
+          msg.sessionId.toString() + "_" + IMSeesionType.Group.toString();
+    } else {
+      sessionKey =
+          msg.sessionId.toString() + "_" + IMSeesionType.Person.toString();
     }
   }
 }
 
-int currentUnixTime(){
-  return (new DateTime.now().millisecondsSinceEpoch)~/1000;
+int currentUnixTime() {
+  return (new DateTime.now().millisecondsSinceEpoch) ~/ 1000;
 }
 
 class IMHelper {
   TTSecurity security = TTSecurity.DefaultSecurity();
   static IMHelper _instance;
-  EventBus eventBus = EventBus(sync:true);
+  EventBus eventBus = EventBus(sync: true);
 
   static IMHelper defaultInstance() {
     if (_instance == null) {
@@ -56,9 +58,9 @@ class IMHelper {
   Map<int, UserEntry> userMap = new Map();
   Map<int, GroupEntry> groupMap = new Map();
   Map<String, SessionEntry> sessionMap = new Map();
-  Map<String,int> unreadInfoMap = new Map();
+  Map<String, int> unreadInfoMap = new Map();
   var imClient = new IMClient();
-  
+
   SessionEntry showSessionEntry;
 
   UserEntry loginUserEntry;
@@ -67,12 +69,11 @@ class IMHelper {
     return id == imClient.userID();
   }
 
-  loginUserId(){
+  loginUserId() {
     return imClient.userID();
   }
 
-
-  setShowSession(SessionEntry session){
+  setShowSession(SessionEntry session) {
     showSessionEntry = session;
   }
 
@@ -103,10 +104,10 @@ class IMHelper {
     return groups;
   }
 
-  loadLocalSessions() async{
+  loadLocalSessions() async {
     List sessions = await sessionDao.queryAll();
     sessionMap.clear();
-    sessions.forEach((session){
+    sessions.forEach((session) {
       sessionMap[session.sessionKey] = session;
     });
     return sessions;
@@ -116,12 +117,26 @@ class IMHelper {
     return sessionMap[sessionKey];
   }
 
+  buildAndSaveSessionForNewMsg(MessageEntry msg) async{
+    var sessionType = IMSeesionType.Person;
+    if (msg.msgType == IMMsgType.MSG_TYPE_GROUP_AUDIO ||
+        msg.msgType == IMMsgType.MSG_TYPE_GROUP_TEXT) {
+      sessionType = IMSeesionType.Group;
+    }
+    SessionEntry sessionEntry = SessionEntry(msg.sessionId, sessionType);
+    sessionEntry.unreadCnt = 1;
+    sessionEntry.updatedTime = msg.time;
+    sessionEntry.lastMsg = decodeMsgData(msg.msgData, msg.msgType);
+    await sessionDao.save(sessionEntry);
+    sessionMap[sessionEntry.sessionKey] = sessionEntry;
+    return sessionEntry;
+  }
 
   initData() async {
     const LASTUSERIDKEY = "lastUserId";
     SharedPreferences prefs = await SharedPreferences.getInstance();
     int lastUserId = prefs.getInt(LASTUSERIDKEY);
-    if(lastUserId == null || lastUserId != imClient.userID()) {
+    if (lastUserId == null || lastUserId != imClient.userID()) {
       await DatabaseHelper.instance.resetDb();
       prefs.setInt(LASTUSERIDKEY, imClient.userID());
       prefs.setInt('users_lastUpdateTime', 0);
@@ -129,16 +144,31 @@ class IMHelper {
 
     UserInfo loginUserInfo = imClient.loginUserInfo();
 
-    loginUserEntry = UserEntry(id: loginUserInfo.userId,avatar: loginUserInfo.avatarUrl,name: loginUserInfo.userNickName, signInfo: loginUserInfo.signInfo);
+    loginUserEntry = UserEntry(
+        id: loginUserInfo.userId,
+        avatar: loginUserInfo.avatarUrl,
+        name: loginUserInfo.userNickName,
+        signInfo: loginUserInfo.signInfo);
 
-    imClient.registerNewMsgHandler((result){
-      MessageEntry messageEntry = new MessageEntry(msgId: result.msgId,fromId: result.fromUserId,sessionId: result.fromUserId,msgData: result.msgData,msgType: result.msgType.value,time: result.createTime);
-      if(result.msgType == MsgType.MSG_TYPE_GROUP_AUDIO || result.msgType == MsgType.MSG_TYPE_GROUP_TEXT) {
+    imClient.registerNewMsgHandler((result) {
+      MessageEntry messageEntry = new MessageEntry(
+          msgId: result.msgId,
+          fromId: result.fromUserId,
+          sessionId: result.fromUserId,
+          msgData: result.msgData,
+          msgType: result.msgType.value,
+          time: result.createTime);
+      if (result.msgType == MsgType.MSG_TYPE_GROUP_AUDIO ||
+          result.msgType == MsgType.MSG_TYPE_GROUP_TEXT) {
         messageEntry.sessionId = result.toSessionId;
+      } else {
+        if (!userMap.containsKey(messageEntry.fromId)) {
+          //请求用户信息
+        }
       }
-      messageEntry.msgText = decodeMsgData(result.msgData, messageEntry.msgType);
+      messageEntry.msgText =
+          decodeMsgData(result.msgData, messageEntry.msgType);
       eventBus.fire(NewMsgEvent(messageEntry));
-      
     });
     await loadLocalFriends();
     await loadFriendsFromServer();
@@ -146,7 +176,7 @@ class IMHelper {
     return 1;
   }
 
-  loginOut() async{
+  loginOut() async {
     return imClient.loginOut();
   }
 
@@ -197,7 +227,7 @@ class IMHelper {
             await groupDao.save(entry);
             groupMap[groupInfo.groupId] = entry;
           }
-        }else {
+        } else {
           print("not group info");
         }
       }
@@ -207,7 +237,6 @@ class IMHelper {
 
   loadMessagesByServer(int sessionId, int type,
       {beginMsgId = 0, cnt = 20}) async {
-
     //print('load msgs by Id:' + beginMsgId.toString());
     IMGetMsgListRsp result;
     if (type == IMSeesionType.Person) {
@@ -217,7 +246,7 @@ class IMHelper {
     }
     List<MessageEntry> msgs = List();
     if (result != null && result.msgList != null) {
-      for(int i=0; i < result.msgList.length; i ++){
+      for (int i = 0; i < result.msgList.length; i++) {
         MsgInfo msg = result.msgList[i];
         var messageEntry = new MessageEntry(
             fromId: msg.fromSessionId,
@@ -232,17 +261,14 @@ class IMHelper {
     return msgs;
   }
 
-
   decodeToImage(msgData) {
     try {
       var tmplastMsg = utf8.decode(msgData);
-      if(tmplastMsg.length > 10 && tmplastMsg.startsWith("&\$#@~^@[{:")) {
+      if (tmplastMsg.length > 10 && tmplastMsg.startsWith("&\$#@~^@[{:")) {
         return tmplastMsg;
       }
       return security.decryptText(tmplastMsg);
-    }catch(e) {
-
-    }
+    } catch (e) {}
     return "";
   }
 
@@ -257,7 +283,7 @@ class IMHelper {
         lastMsg = '[语音]';
       } else {
         lastMsg = security.decryptText(tmplastMsg);
-        if(lastMsg.length > 10 && lastMsg.startsWith("&\$#@~^@[{:")) {
+        if (lastMsg.length > 10 && lastMsg.startsWith("&\$#@~^@[{:")) {
           lastMsg = '[图片]';
         }
       }
@@ -270,18 +296,21 @@ class IMHelper {
   requestUnReadCnt() async {
     var result = await imClient.requestUnReadMsgCnt();
     unreadInfoMap.clear();
-    if(result != null){
+    if (result != null) {
       int length = result.unreadinfoList.length;
-      for(int i = 0; i < length; i ++){
+      for (int i = 0; i < length; i++) {
         UnreadInfo unreadinfo = result.unreadinfoList[i];
-        String sessionKey = unreadinfo.sessionId.toString() + "_" + unreadinfo.sessionType.value.toString();
+        String sessionKey = unreadinfo.sessionId.toString() +
+            "_" +
+            unreadinfo.sessionType.value.toString();
         SessionEntry sessionEntry = getSessionBySessionKey(sessionKey);
         //unreadInfoMap[sessionKey] = unreadinfo.unreadCnt;
-        
-        if(sessionEntry != null) {
-          sessionEntry.lastMsg = decodeMsgData(unreadinfo.latestMsgData, unreadinfo.latestMsgType.value);
+
+        if (sessionEntry != null) {
+          sessionEntry.lastMsg = decodeMsgData(
+              unreadinfo.latestMsgData, unreadinfo.latestMsgType.value);
           sessionEntry.unreadCnt = unreadinfo.unreadCnt;
-        }else {
+        } else {
           //手动创建
         }
       }
@@ -289,29 +318,29 @@ class IMHelper {
     print(unreadInfoMap);
   }
 
-
-  void clearUnReadCntBySessionKey(String sessionKey){
+  void clearUnReadCntBySessionKey(String sessionKey) {
     SessionEntry sessionEntry = getSessionBySessionKey(sessionKey);
     sessionEntry.unreadCnt = 0;
     //unreadInfoMap.remove(sessionKey);
   }
 
-  sureReadMessage(MessageEntry msg) async{
+  sureReadMessage(MessageEntry msg) async {
     var sessionType = SessionType.SESSION_TYPE_GROUP;
 
-    if(msg.msgType == IMMsgType.MSG_TYPE_SINGLE_AUDIO || msg.msgType == IMMsgType.MSG_TYPE_SINGLE_TEXT) {
+    if (msg.msgType == IMMsgType.MSG_TYPE_SINGLE_AUDIO ||
+        msg.msgType == IMMsgType.MSG_TYPE_SINGLE_TEXT) {
       sessionType = SessionType.SESSION_TYPE_SINGLE;
     }
-    return imClient.sureReadMessage(msg.msgId,msg.sessionId,sessionType);
+    return imClient.sureReadMessage(msg.msgId, msg.sessionId, sessionType);
   }
 
-  loadSessionsFromServer({force:true}) async {
+  loadSessionsFromServer({force: true}) async {
     //保证在initData之后
 
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var lastUpdateTime = prefs.getInt('sessions_lastUpdateTime');
     lastUpdateTime = lastUpdateTime != null ? lastUpdateTime : 0;
-    if(force){
+    if (force) {
       lastUpdateTime = 0;
     }
     var result = await imClient.requestSessions(lastUpdateTime);
@@ -321,12 +350,14 @@ class IMHelper {
       for (int i = 0; i < result.contactSessionList.length; i++) {
         ContactSessionInfo sessionInfo = result.contactSessionList[i];
         //print(sessionInfo);
-        
+
         int sessionID = sessionInfo.sessionId;
-        SessionEntry sessionEntry = new SessionEntry(sessionID,sessionInfo.sessionType.value);
+        SessionEntry sessionEntry =
+            new SessionEntry(sessionID, sessionInfo.sessionType.value);
         //sessionEntry.sessionId = sessionID;
         sessionEntry.updatedTime = sessionInfo.updatedTime;
-        sessionEntry.lastMsg = decodeMsgData(sessionInfo.latestMsgData, sessionInfo.latestMsgType.value);
+        sessionEntry.lastMsg = decodeMsgData(
+            sessionInfo.latestMsgData, sessionInfo.latestMsgType.value);
         if (sessionInfo.sessionType == SessionType.SESSION_TYPE_GROUP) {
           sessionEntry.sessionType = IMSeesionType.Group;
           GroupEntry entry = groupMap[sessionID];
@@ -334,8 +365,6 @@ class IMHelper {
             print('not GroupEntry for:$sessionID');
             continue;
           }
-          sessionEntry.avatar = entry.avatar;
-          sessionEntry.sessionName = entry.name;
         } else {
           sessionEntry.sessionType = IMSeesionType.Person;
           UserEntry entry = userMap[sessionID];
@@ -343,8 +372,6 @@ class IMHelper {
             print('not user for:$sessionID');
             continue;
           }
-          sessionEntry.avatar = entry.avatar;
-          sessionEntry.sessionName = entry.name;
         }
         await sessionDao.updateOrInsert(sessionEntry);
         //sessions.add(sessionEntry);
@@ -355,34 +382,39 @@ class IMHelper {
     //return sessions;
   }
 
-  buildTextMsg(String text,int sessionId,int sessionType) {
+  buildTextMsg(String text, int sessionId, int sessionType) {
     int msgType = IMMsgType.MSG_TYPE_GROUP_TEXT;
-    if(sessionType == IMSeesionType.Person) {
+    if (sessionType == IMSeesionType.Person) {
       msgType = IMMsgType.MSG_TYPE_SINGLE_TEXT;
     }
-    MessageEntry msg = MessageEntry(msgId: 0, msgData: utf8.encode(security.encryptText(text)), fromId:imClient.userID(),msgType: msgType);
+    MessageEntry msg = MessageEntry(
+        msgId: 0,
+        msgData: utf8.encode(security.encryptText(text)),
+        fromId: imClient.userID(),
+        msgType: msgType);
     return msg;
   }
 
-  
-
-  sendTextMsg(String text,int sessionId,int sessionType) async{
+  sendTextMsg(String text, int sessionId, int sessionType) async {
     IMMsgDataAck result;
     int msgType = IMMsgType.MSG_TYPE_GROUP_TEXT;
-    if(sessionType == IMSeesionType.Person) {
-      result =  await imClient.sendTextMsg(text, sessionId);
+    if (sessionType == IMSeesionType.Person) {
+      result = await imClient.sendTextMsg(text, sessionId);
       msgType = IMMsgType.MSG_TYPE_SINGLE_TEXT;
-    }else {
-      result =  await imClient.sendGroupTextMsg(text, sessionId);
+    } else {
+      result = await imClient.sendGroupTextMsg(text, sessionId);
     }
-    if(result != null) {
-      MessageEntry msg = MessageEntry(msgId: result.msgId, msgData: utf8.encode(text), fromId:result.userId,msgType: msgType);
+    if (result != null) {
+      MessageEntry msg = MessageEntry(
+          msgId: result.msgId,
+          msgData: utf8.encode(text),
+          fromId: result.userId,
+          msgType: msgType);
       msg.msgText = text;
       msg.time = currentUnixTime();
-    //print(result);
+      //print(result);
       return msg;
     }
     return null;
-    
   }
 }

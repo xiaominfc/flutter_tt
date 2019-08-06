@@ -26,6 +26,7 @@ class MessagePage extends StatefulWidget {
 class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   EventBus eventBus = EventBus(sync: true);
   final IMHelper imHelper = IMHelper();
+  String chatTitle = "";
   final TextEditingController textEditingController =
       new TextEditingController();
   FocusNode _textFocusNode = FocusNode();
@@ -53,6 +54,14 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     SessionEntry session = widget.session;
+    if(session.sessionType == IMSeesionType.Person) {
+      UserEntry userEntry = imHelper.userMap[session.sessionId];
+      chatTitle = userEntry.name;
+    }else {
+      GroupEntry groupEntry = imHelper.groupMap[session.sessionId];
+      chatTitle = groupEntry.name;
+    }
+
     WidgetsBinding.instance.addObserver(this);
     _textFocusNode.addListener(() {
       //print("_textFocusNode.hasFocus:" + _textFocusNode.hasFocus.toString());
@@ -68,6 +77,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
     _onRefresh().then((result) {
       Timer(Duration(milliseconds: 1000), () {
+        
         //这个地方处理的不好
         //print("max:" + _controller.position.maxScrollExtent.toString());
         _scrollToEnd(0);
@@ -121,6 +131,11 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
   //滑动到底部
   _scrollToEnd([animationTime = 500]) {
+    print(_controller.position);
+    if(_controller.position.maxScrollExtent == 0) {
+      print('_controller.position.maxScrollExtent == 0');
+      return;
+    }
     double scrollValue = _controller.position.maxScrollExtent + 100;
     if (scrollValue < 10) {
       scrollValue = 1000000;
@@ -482,9 +497,8 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    SessionEntry session = widget.session;
     return Scaffold(
-        appBar: AppBar(title: Text(session.sessionName)),
+        appBar: AppBar(title: Text(chatTitle)),
         body: Container(
           child: RefreshIndicator(
             onRefresh: _onRefresh,

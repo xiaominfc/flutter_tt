@@ -48,16 +48,21 @@ class _ChatPageState extends State<ChatPage> {
 
 
   void _onEvent(NewMsgEvent event) async{
+
     if(imHelper.showSessionEntry == null || event.sessionKey != imHelper.showSessionEntry.sessionKey) {
         SessionEntry sessionEntry = imHelper.getSessionBySessionKey(event.sessionKey);
         if(sessionEntry != null) {
           sessionEntry.updatedTime = event.msg.time;
           sessionEntry.lastMsg = imHelper.decodeMsgData(event.msg.msgData, event.msg.msgType);
           sessionEntry.unreadCnt = sessionEntry.unreadCnt + 1;
-          setState(() {
-            
-          });
+        }else {
+          MessageEntry msg = event.msg;
+          sessionEntry = await imHelper.buildAndSaveSessionForNewMsg(msg);
+          _sessions.insert(0, sessionEntry);
         }
+        setState(() {
+            
+        });
     }
   }
 
@@ -124,18 +129,30 @@ class _ChatPageState extends State<ChatPage> {
             itemCount: _sessions == null ? 0 : _sessions.length,
             itemBuilder: (context, position) {
               SessionEntry sessionEntry = _sessions[position];
+              var avatar;
+              var name;
+              if(sessionEntry.sessionType == IMSeesionType.Person){
+                UserEntry user = imHelper.userMap[sessionEntry.sessionId];
+                avatar = user.avatar;
+                name = user.name;
+              }else {
+                GroupEntry group = imHelper.groupMap[sessionEntry.sessionId];
+                avatar = group.avatar;
+                name = group.name;
+              }
+
               int unReadCnt = sessionEntry.unreadCnt;
               return Column(children: <Widget>[
                 GestureDetector(
                   onTap: () => _onTap(position),
                   child: ListTile(
                     leading: ClipOval(
-                      child: FadeInImage(
-                        image: NetworkImage(sessionEntry.avatar),
+                      child: avatar==null?Image.asset('images/avatar_default.png'):FadeInImage(
+                        image: NetworkImage(avatar),
                         placeholder: AssetImage('images/avatar_default.png'),
                       ),
                     ),
-                    title: Text(sessionEntry.sessionName,
+                    title: Text(name??"",
                         style: Theme.of(context).textTheme.subhead),
                     subtitle: new Text(sessionEntry.lastMsg, maxLines: 1),
                     trailing: buildTailWidget(unReadCnt, sessionEntry.updatedTime),
