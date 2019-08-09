@@ -123,7 +123,11 @@ class _ChatPageState extends State<ChatPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(title: const Text('消息')),
+        appBar: AppBar(title: const Text('消息',
+          style: TextStyle(
+            fontStyle: FontStyle.normal,
+          ),
+        )),
         body: Center(
           child: ListView.builder(
             itemCount: _sessions == null ? 0 : _sessions.length,

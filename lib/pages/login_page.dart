@@ -164,18 +164,18 @@ class _LoginPageState extends State<LoginPage> {
       controller: passwordTextFieldController,
       decoration: InputDecoration(
         contentPadding: textFieldPadding,
-        hintText: "密码",
-        border: textFieldBorder,
+        labelText: "密码",
+       // border: textFieldBorder,
       ),
       obscureText: true,
       style: style,
     );
     final usernameTextField = TextField(
+      
       controller: usernameTextFieldController,
       decoration: InputDecoration(
         contentPadding: textFieldPadding,
-        hintText: "账号",
-        border: textFieldBorder,
+        labelText: "账号",
       ),
       style: style,
     );
@@ -196,22 +196,25 @@ class _LoginPageState extends State<LoginPage> {
     );
 
     var loginContentWidget = Center(
-        child: Padding(
-      padding: const EdgeInsets.fromLTRB(30, 60, 30, 0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          usernameTextField,
-          SizedBox(height: 10.0),
-          passwordTextField,
-          SizedBox(height: 10.0),
-          loginButon
-        ],
-      ),
-    ));
+            child: Card(
+                margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                child: Padding(
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
+                child: Column(
+                    mainAxisSize:MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: <Widget>[
+                      usernameTextField,
+                      SizedBox(height: 8.0),
+                      passwordTextField,
+                      SizedBox(height: 32.0),
+                      loginButon
+                    ],
+                ),
+            )));
     return Scaffold(
       appBar: AppBar(
-        title: Text("Login"),
+        title: Text("登录"),
         actions: <Widget>[
             IconButton(
               icon: Icon(Icons.settings),
@@ -220,7 +223,7 @@ class _LoginPageState extends State<LoginPage> {
               },
             ),],
       ),
-      body: Stack(
+      body: SafeArea(child:Stack(
         children: <Widget>[
           loginContentWidget,
           Center(
@@ -230,7 +233,7 @@ class _LoginPageState extends State<LoginPage> {
                     )
                   : null),
         ],
-      ),
+      ),),
     );
   }
 }

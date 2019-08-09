@@ -54,10 +54,10 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     SessionEntry session = widget.session;
-    if(session.sessionType == IMSeesionType.Person) {
+    if (session.sessionType == IMSeesionType.Person) {
       UserEntry userEntry = imHelper.userMap[session.sessionId];
       chatTitle = userEntry.name;
-    }else {
+    } else {
       GroupEntry groupEntry = imHelper.groupMap[session.sessionId];
       chatTitle = groupEntry.name;
     }
@@ -77,12 +77,9 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
     _onRefresh().then((result) {
       Timer(Duration(milliseconds: 1000), () {
-        
         //这个地方处理的不好
         //print("max:" + _controller.position.maxScrollExtent.toString());
         _scrollToEnd(0);
-        //
-        // _controller.jumpTo(_controller.position.maxScrollExtent + 100);
       });
     });
     imHelper.setShowSession(session);
@@ -132,7 +129,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   //滑动到底部
   _scrollToEnd([animationTime = 500]) {
     print(_controller.position);
-    if(_controller.position.maxScrollExtent == 0) {
+    if (_controller.position.maxScrollExtent == 0) {
       print('_controller.position.maxScrollExtent == 0');
       return;
     }
@@ -214,7 +211,6 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     if (text == '[图片]') {
       String url = imHelper.decodeToImage(msg.msgData);
       url = url.substring(10, url.length - 9);
-      print("url:$url");
       return Card(
           child: Container(
               child: Image(
@@ -499,34 +495,36 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(title: Text(chatTitle)),
-        body: Container(
-          child: RefreshIndicator(
-            onRefresh: _onRefresh,
-            child: Column(children: <Widget>[
-              Flexible(
-                  child: GestureDetector(
-                onTap: _hideBottomLayout,
-                child: ListView.builder(
-                  controller: _controller,
-                  itemCount: allMsgs == null ? 0 : allMsgs.length,
-                  itemBuilder: (context, position) {
-                    MessageEntry msg = allMsgs[position];
-                    UserEntry fromUser =
-                        IMHelper.defaultInstance().userMap[msg.fromId];
-                    return _buildMsgItem(msg, fromUser);
-                  },
+        body: SafeArea(
+          child: Container(
+            child: RefreshIndicator(
+              onRefresh: _onRefresh,
+              child: Column(children: <Widget>[
+                Flexible(
+                    child: GestureDetector(
+                  onTap: _hideBottomLayout,
+                  child: ListView.builder(
+                    controller: _controller,
+                    itemCount: allMsgs == null ? 0 : allMsgs.length,
+                    itemBuilder: (context, position) {
+                      MessageEntry msg = allMsgs[position];
+                      UserEntry fromUser =
+                          IMHelper.defaultInstance().userMap[msg.fromId];
+                      return _buildMsgItem(msg, fromUser);
+                    },
+                  ),
+                )),
+                Divider(
+                  height: 1.0,
                 ),
-              )),
-              Divider(
-                height: 1.0,
-              ),
-              Container(
-                decoration: new BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                ),
-                child: _textComposerWidget(),
-              )
-            ]),
+                Container(
+                  decoration: new BoxDecoration(
+                    color: Theme.of(context).cardColor,
+                  ),
+                  child: _textComposerWidget(),
+                )
+              ]),
+            ),
           ),
         ));
   }
