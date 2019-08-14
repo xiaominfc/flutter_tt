@@ -72,7 +72,7 @@ class _LoginPageState extends State<LoginPage> {
     });
   }
 
-  _doLogin()async{
+  _doLogin() async{
     if (logining) {
       return;
     }
@@ -97,18 +97,18 @@ class _LoginPageState extends State<LoginPage> {
       imClient
           .doLogin(serverInfo['priorIP'], int.parse(serverInfo['port']))
           .then((loginResult){
-        if (loginResult.result) {
-          prefs.setString('login_username', username);
-          prefs.setString('login_password', password);
-          prefs.setBool("diable_autoLogin",false);
-          IMHelper.defaultInstance().initData().then((result){
-            _showHome();
+            if (loginResult.result) {
+              prefs.setString('login_username', username);
+              prefs.setString('login_password', password);
+              prefs.setBool("diable_autoLogin",false);
+              IMHelper.defaultInstance().initData().then((result){
+                _showHome();
+              });
+            } else {
+              print("login failed!");
+              _loginFailed();
+            }
           });
-        } else {
-          print("login failed!");
-          _loginFailed();
-        }
-      });
     });
   }
 
