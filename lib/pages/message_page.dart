@@ -69,17 +69,13 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         setState(() {
           _showPanel = false;
         });
-
-        //_scrollToEnd(10);
       } else {}
-      //print(MediaQuery.of(context).viewInsets.bottom);
     });
 
     _onRefresh().then((result) {
+      
       Timer(Duration(milliseconds: 1000), () {
-        //这个地方处理的不好
-        //print("max:" + _controller.position.maxScrollExtent.toString());
-        _scrollToEnd(0);
+        _scrollToEnd(30);
       });
     });
     imHelper.setShowSession(session);
@@ -116,7 +112,8 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     if (isVisible) {
       //print("KEYBOARD VISIBLE");
       if (_textFocusNode.hasFocus) {
-        _controller.jumpTo(_controller.position.maxScrollExtent + 100);
+        _scrollToEnd(10);
+        //_controller.jumpTo(_controller.position.maxScrollExtent + 100);
       }
     } else {
       //print("KEYBOARD HIDDEN");
@@ -127,24 +124,21 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   }
 
   //滑动到底部
-  _scrollToEnd([animationTime = 500]) {
-    print(_controller.position);
+  _scrollToEnd([animationTime = 500]) async{
     if (_controller.position.maxScrollExtent == 0) {
       print('_controller.position.maxScrollExtent == 0');
       return;
     }
-    double scrollValue = _controller.position.maxScrollExtent + 100;
-    if (scrollValue < 10) {
-      scrollValue = 1000000;
-    }
-    //print("scroll to :$scrollValue");
+    double scrollValue = _controller.position.maxScrollExtent;
 
-    if (animationTime == 0) {
-      _controller.jumpTo(scrollValue);
-      return;
-    }
     _controller.animateTo(scrollValue,
-        duration: Duration(milliseconds: animationTime), curve: Curves.easeIn);
+        duration: Duration(milliseconds: animationTime), curve: Curves.easeIn).then((value){
+          print('value:' + (_controller.offset).toString() + "  max:" + _controller.position.maxScrollExtent.toString());
+          if(_controller.offset < _controller.position.maxScrollExtent) {
+            _scrollToEnd(10);
+          }
+          
+        });
   }
 
   Future<Null> _onRefresh() async {
@@ -218,7 +212,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         fit: BoxFit.cover,
         width: maxWidth,
       )));
-    } else if (text.startsWith("[牙牙")) {
+    } else if (text.startsWith("[牙牙")) {//动态表情
       String yayaEmoji = EmojiUtil.yaya(text);
       if (yayaEmoji != null) {
         return Card(
@@ -319,10 +313,14 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     messageEntry.sendStatus = IMMsgSendStatus.Sending;
     messageEntry.time = currentUnixTime();
     allMsgs.add(messageEntry);
-    setState(() {
-      _scrollToEnd(0);
+    //_scrollToEnd(10);
+    Timer(Duration(milliseconds: 100), () {
+        _scrollToEnd(30);
     });
-
+    setState(() {
+      
+    });
+    
     imHelper
         .sendTextMsg(text, session.sessionId, session.sessionType)
         .then((result) {
