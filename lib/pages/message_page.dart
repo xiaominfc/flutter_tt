@@ -14,6 +14,15 @@ import '../models/helper.dart';
 import 'package:event_bus/event_bus.dart';
 import 'package:toast/toast.dart';
 import '../utils/emoji_utils.dart';
+import '../utils/utils.dart';
+
+
+class _PanelType {
+    static const int Normal = 0;
+    static const int Emoji = 1;
+    static const int Tools = 2;
+}
+
 
 class MessagePage extends StatefulWidget {
   final session;
@@ -22,6 +31,7 @@ class MessagePage extends StatefulWidget {
   @override
   createState() => _MessagePageState();
 }
+
 
 class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   EventBus eventBus = EventBus(sync: true);
@@ -35,7 +45,9 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   List<MessageEntry> allMsgs = List();
   StreamSubscription subscription;
   bool _showPanel = false;
+  int panelType = _PanelType.Normal;
   //_MessagePageState(this.session);
+
   //EventBus 回调
   void _onEvent(NewMsgEvent event) async {
     SessionEntry session = widget.session;
@@ -46,7 +58,9 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       session.updatedTime = event.msg.time;
       imHelper.sureReadMessage(event.msg);
       setState(() {});
-      _scrollToEnd(10);
+      Timer(Duration(milliseconds:500), (){
+        _scrollToEnd();
+      });
     }
   }
 
@@ -73,10 +87,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     });
 
     _onRefresh().then((result) {
-      
-      Timer(Duration(milliseconds: 1000), () {
-        _scrollToEnd(30);
-      });
+      _scrollToEnd(1000);
     });
     imHelper.setShowSession(session);
     subscription = imHelper.eventBus.on<NewMsgEvent>().listen((event) {
@@ -123,22 +134,27 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     }
   }
 
+
   //滑动到底部
   _scrollToEnd([animationTime = 500]) async{
-    if (_controller.position.maxScrollExtent == 0) {
-      print('_controller.position.maxScrollExtent == 0');
-      return;
+    //print("scroll end");
+    if(_controller.position.maxScrollExtent == 0) {
+      Timer(Duration(milliseconds: 1000), () {
+        if(_controller.position.maxScrollExtent > 0) {
+          _scrollToEnd(200);
+        }
+      });
     }
-    double scrollValue = _controller.position.maxScrollExtent;
 
+    double scrollValue = _controller.position.maxScrollExtent;
     _controller.animateTo(scrollValue,
-        duration: Duration(milliseconds: animationTime), curve: Curves.easeIn).then((value){
-          print('value:' + (_controller.offset).toString() + "  max:" + _controller.position.maxScrollExtent.toString());
+      duration: Duration(milliseconds: animationTime), curve: Curves.easeIn).then((value){
+          //print('value:' + (_controller.offset).toString() + "  max:" + _controller.position.maxScrollExtent.toString());
           if(_controller.offset < _controller.position.maxScrollExtent) {
-            _scrollToEnd(10);
+            _scrollToEnd(200);
           }
-          
-        });
+      }
+    );
   }
 
   Future<Null> _onRefresh() async {
@@ -208,10 +224,10 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       return Card(
           child: Container(
               child: Image(
-        image: NetworkImage(url),
-        fit: BoxFit.cover,
-        width: maxWidth,
-      )));
+                  image: NetworkImage(url),
+                  fit: BoxFit.cover,
+                  width: maxWidth,
+              )));
     } else if (text.startsWith("[牙牙")) {//动态表情
       String yayaEmoji = EmojiUtil.yaya(text);
       if (yayaEmoji != null) {
@@ -219,9 +235,9 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
             child: Container(
                 width: 128,
                 child: Image(
-                  image: AssetImage(yayaEmoji),
-                  fit: BoxFit.cover,
-                  width: maxWidth,
+                    image: AssetImage(yayaEmoji),
+                    fit: BoxFit.cover,
+                    width: maxWidth,
                 )));
       }
     }
@@ -229,11 +245,11 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         child: Container(
             padding: EdgeInsets.all(10),
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: Text(text,
-                  maxLines: 10,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.subhead),
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Text(text,
+                    maxLines: 10,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.subhead),
             )));
   }
 
@@ -246,6 +262,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   }
 
   Widget rightAvatarItem(MessageEntry msg, UserEntry fromUser) {
+    DateTime date = new DateTime.fromMillisecondsSinceEpoch(msg.time * 1000);
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Row(
@@ -277,7 +294,8 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
                           : Center()),
                   _msgContentBuild(msg)
                 ],
-              )
+              ),
+              Text(dateFormat(date,""))
             ],
           ),
           _avatar(fromUser, EdgeInsets.only(left: 8.0, top: 8.0))
@@ -287,6 +305,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   }
 
   Widget leftAvatarItem(MessageEntry msg, UserEntry fromUser) {
+    DateTime date = new DateTime.fromMillisecondsSinceEpoch(msg.time * 1000);
     return Padding(
         padding: const EdgeInsets.all(16.0),
         child: Row(
@@ -298,7 +317,8 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
                 Text(fromUser.name, style: Theme.of(context).textTheme.subhead),
-                _msgContentBuild(msg)
+                _msgContentBuild(msg),
+                Text(dateFormat(date,''))
               ],
             ),
           ],
@@ -313,10 +333,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     messageEntry.sendStatus = IMMsgSendStatus.Sending;
     messageEntry.time = currentUnixTime();
     allMsgs.add(messageEntry);
-    //_scrollToEnd(10);
-    Timer(Duration(milliseconds: 100), () {
-        _scrollToEnd(30);
-    });
+    _scrollToEnd();
     setState(() {
       
     });
@@ -349,7 +366,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     _sendText(text);
   }
 
-  Widget _buildEmojiPannel(double maxHeight) {
+  Widget _buildEmojiPanel(double maxHeight) {
     int count = EmojiUtil.YAYAMAP.length;
     int pageItemsCount = 8;
     int pageCount = count ~/ pageItemsCount;
@@ -397,6 +414,39 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         ));
   }
 
+  Widget _buildPanel(double maxHeight) {
+    if(this.panelType == _PanelType.Emoji) {
+        return _buildEmojiPanel(maxHeight);
+    }
+    return Container(
+        height: maxHeight, 
+        child: Center(
+            child:Text('not implement tools panel!')
+            )
+        );
+  }
+
+ 
+  _toggleToPanelType(int targetType) {
+    if(_showPanel && panelType == targetType) {
+      _showPanel = !_showPanel;
+    }else if(!_showPanel) {
+      _showPanel = !_showPanel;
+      panelType = targetType;
+    }else {
+      panelType = targetType;
+    }
+    if (_showPanel) {
+      if (_isKeyboardOpen) {
+        FocusScope.of(context).requestFocus(
+            new FocusNode()); //show panel after hide keyboard
+        return;
+      }
+    }
+    setState(() {});
+  }
+
+
   Widget _textComposerWidget() {
     return new IconTheme(
       data: new IconThemeData(color: Colors.blue),
@@ -427,15 +477,8 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
                       padding: EdgeInsets.zero,
                       icon: new Icon(Icons.add_circle_outline),
                       onPressed: () {
-                        _showPanel = !_showPanel;
-                        if (_showPanel) {
-                          if (_isKeyboardOpen) {
-                            FocusScope.of(context).requestFocus(
-                                new FocusNode()); //show panel after hide keyboard
-                            return;
-                          }
-                        }
-                        setState(() {});
+                        //_showPanel = !_showPanel;
+                        _toggleToPanelType(_PanelType.Tools);
                       },
                     ),
                   ),
@@ -445,15 +488,9 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
                       padding: EdgeInsets.zero,
                       icon: new Icon(Icons.insert_emoticon),
                       onPressed: () {
-                        _showPanel = !_showPanel;
-                        if (_showPanel) {
-                          if (_isKeyboardOpen) {
-                            FocusScope.of(context).requestFocus(
-                                new FocusNode()); //show panel after hide keyboard
-                            return;
-                          }
-                        }
-                        setState(() {});
+                        _toggleToPanelType(_PanelType.Emoji);
+                        //_showPanel = !_showPanel;
+                        
                       },
                     ),
                   )
@@ -467,7 +504,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
                       height: 1.0,
                     ),
                     _showPanel
-                        ? _buildEmojiPannel(200)
+                        ? _buildPanel(200)
                         : Divider(
                             height: 0.0,
                           ),

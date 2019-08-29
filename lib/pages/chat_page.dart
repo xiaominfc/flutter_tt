@@ -105,17 +105,17 @@ class _ChatPageState extends State<ChatPage> {
         children: <Widget>[
           Text(dateFormat(date,"")),
           unReadCnt > 0 ? Container(
-                            child: Center(child: Text(unReadCnt.toString(),style: TextStyle(color: Colors.white))),
-                            width: 20,
-                            decoration: new BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: Colors.red,
-                            ),
-                          )
-                        : Icon(
-                            Icons.arrow_forward_ios,
-                          )
-      ],
+              child: Center(child: Text(unReadCnt.toString(),style: TextStyle(color: Colors.white))),
+              width: 20,
+              decoration: new BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.red,
+              ),
+          )
+          : Icon(
+              Icons.arrow_forward_ios,
+          )
+        ],
     );
 
   }
