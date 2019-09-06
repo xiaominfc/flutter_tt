@@ -58,9 +58,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       session.updatedTime = event.msg.time;
       imHelper.sureReadMessage(event.msg);
       setState(() {});
-      Timer(Duration(milliseconds:500), (){
-        _scrollToEnd();
-      });
+      _waitTimeScrollToEnd(500);
     }
   }
 
@@ -87,7 +85,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     });
 
     _onRefresh().then((result) {
-      _scrollToEnd(1000);
+      _waitTimeScrollToEnd();
     });
     imHelper.setShowSession(session);
     subscription = imHelper.eventBus.on<NewMsgEvent>().listen((event) {
@@ -116,15 +114,14 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     } else {
       _isKeyboardOpen = true;
       _onKeyboardChanged(true);
+      
     }
   }
 
   _onKeyboardChanged(bool isVisible) {
     if (isVisible) {
-      //print("KEYBOARD VISIBLE");
       if (_textFocusNode.hasFocus) {
-        _scrollToEnd(10);
-        //_controller.jumpTo(_controller.position.maxScrollExtent + 100);
+        _waitTimeScrollToEnd(100,300);
       }
     } else {
       //print("KEYBOARD HIDDEN");
@@ -135,18 +132,24 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   }
 
 
+  _waitTimeScrollToEnd([time = 1000, animationTime = 500]) {
+      Timer(Duration(milliseconds: time), () {
+        if(_controller.position.maxScrollExtent > 0) {
+          _scrollToEnd(animationTime);
+        }
+      });
+  }
+
+
   //滑动到底部
   _scrollToEnd([animationTime = 500]) async{
     //print("scroll end");
     if(_controller.position.maxScrollExtent == 0) {
-      Timer(Duration(milliseconds: 1000), () {
-        if(_controller.position.maxScrollExtent > 0) {
-          _scrollToEnd(200);
-        }
-      });
+      return;
     }
 
     double scrollValue = _controller.position.maxScrollExtent;
+    //print('scroll to $scrollValue');
     _controller.animateTo(scrollValue,
       duration: Duration(milliseconds: animationTime), curve: Curves.easeIn).then((value){
           //print('value:' + (_controller.offset).toString() + "  max:" + _controller.position.maxScrollExtent.toString());
@@ -332,10 +335,10 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         imHelper.buildTextMsg(text, session.sessionId, session.sessionType);
     messageEntry.sendStatus = IMMsgSendStatus.Sending;
     messageEntry.time = currentUnixTime();
-    allMsgs.add(messageEntry);
-    _scrollToEnd();
+    allMsgs.add(messageEntry); 
     setState(() {
-      
+       //_scrollToEnd();
+       _waitTimeScrollToEnd(500);
     });
     
     imHelper
