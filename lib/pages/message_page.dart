@@ -6,9 +6,13 @@
 //
 
 import 'dart:async';
+import 'dart:convert';
+import 'dart:io';
+import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/dao.dart';
 import '../models/helper.dart';
 import 'package:event_bus/event_bus.dart';
@@ -148,10 +152,14 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       return;
     }
 
+    //String t;
+
+    //List<String> t;
     double scrollValue = _controller.position.maxScrollExtent;
     //print('scroll to $scrollValue');
     _controller.animateTo(scrollValue,
       duration: Duration(milliseconds: animationTime), curve: Curves.easeIn).then((value){
+        print("");
           //print('value:' + (_controller.offset).toString() + "  max:" + _controller.position.maxScrollExtent.toString());
           if(_controller.offset < _controller.position.maxScrollExtent) {
             _scrollToEnd(200);
@@ -330,6 +338,8 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
   //no check
   void _sendText(String text) {
+
+    //BottomNa
     SessionEntry session = widget.session;
     MessageEntry messageEntry =
         imHelper.buildTextMsg(text, session.sessionId, session.sessionType);
@@ -417,6 +427,24 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         ));
   }
 
+  selectImage() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    return _sendImage(image);
+  }
+
+  _sendImage(File file) async{
+    var dio = new Dio();
+    FormData formData = new FormData.from({
+      "file": new UploadFileInfo(new File("/Users/xiaominfc/Pictures/origin_1.png"), "origin_1.png")
+    });
+    var response = await dio.post("http://msfs.xiaominfc.com/", data: formData);
+
+    if(response.statusCode == 200) {
+      Map<String, dynamic> result = jsonDecode(response.data);
+      //_sendText("");
+    }
+  }
+
   Widget _buildPanel(double maxHeight) {
     if(this.panelType == _PanelType.Emoji) {
         return _buildEmojiPanel(maxHeight);
@@ -424,7 +452,20 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     return Container(
         height: maxHeight, 
         child: Center(
-            child:Text('not implement tools panel!')
+            child:Row(children: <Widget>[
+              Container(
+                margin: EdgeInsets.all(20),
+                padding: EdgeInsets.all(20),
+                child: GestureDetector(
+                  onTap: () {
+                    selectImage();
+                  },
+                  child:Icon(Icons.add_a_photo),
+              ),
+              ),
+              
+            ],)
+            //child:Text('not implement tools panel!')
             )
         );
   }

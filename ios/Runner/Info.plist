@@ -21,7 +21,11 @@
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
 	<key>LSRequiresIPhoneOS</key>
-	<true/>
+    <true/>
+    <key>NSCameraUsageDescription</key>
+    <string></string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string></string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

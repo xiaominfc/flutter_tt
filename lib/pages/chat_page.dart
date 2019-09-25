@@ -153,6 +153,9 @@ class _ChatPageState extends State<ChatPage> {
                     leading: ClipOval(
                       child: avatar==null?Image.asset('images/avatar_default.png'):FadeInImage(
                         image: NetworkImage(avatar),
+                        width: 56,
+                        height: 56,
+                        fit:BoxFit.fitWidth,
                         placeholder: AssetImage('images/avatar_default.png'),
                       ),
                     ),
