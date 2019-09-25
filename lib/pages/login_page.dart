@@ -195,8 +195,18 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
 
-    var loginContentWidget = Center(
-            child: Card(
+    var loginContentWidget = ListView(
+            //mainAxisSize: MainAxisSize.min,
+            shrinkWrap: false,
+            children :<Widget>[ 
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.all(16),
+                  width: 128,
+                  child:  Image.asset('images/logo.png')
+                  ),
+              ),
+              Card(
                 margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                 child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
@@ -211,7 +221,10 @@ class _LoginPageState extends State<LoginPage> {
                       loginButon
                     ],
                 ),
-            )));
+                )
+              )
+            ],
+          );
     return Scaffold(
       appBar: AppBar(
         title: Text("登录"),

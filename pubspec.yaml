@@ -51,8 +51,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - images/linux_512.png
-    - images/avatar_default.png
+    - images/
     - images/yaya/
 
   # To add assets to your application, add an assets section, like this:
