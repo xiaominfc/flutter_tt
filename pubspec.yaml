@@ -32,7 +32,7 @@ dependencies:
   shared_preferences: ^0.5.2
   event_bus: ^1.1.0
   toast: ^0.1.4
-  image_picker: 0.6.1+4
+  #  image_picker: 0.6.1
   dio: ^2.1.16
 
 dev_dependencies:
