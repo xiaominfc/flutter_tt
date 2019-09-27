@@ -20,13 +20,11 @@ import 'package:toast/toast.dart';
 import '../utils/emoji_utils.dart';
 import '../utils/utils.dart';
 
-
 class _PanelType {
-    static const int Normal = 0;
-    static const int Emoji = 1;
-    static const int Tools = 2;
+  static const int Normal = 0;
+  static const int Emoji = 1;
+  static const int Tools = 2;
 }
-
 
 class MessagePage extends StatefulWidget {
   final session;
@@ -36,11 +34,11 @@ class MessagePage extends StatefulWidget {
   createState() => _MessagePageState();
 }
 
-
 class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   EventBus eventBus = EventBus(sync: true);
   final IMHelper imHelper = IMHelper();
   String chatTitle = "";
+
   final TextEditingController textEditingController =
       new TextEditingController();
   FocusNode _textFocusNode = FocusNode();
@@ -77,7 +75,6 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       GroupEntry groupEntry = imHelper.groupMap[session.sessionId];
       chatTitle = groupEntry.name;
     }
-
     WidgetsBinding.instance.addObserver(this);
     _textFocusNode.addListener(() {
       //print("_textFocusNode.hasFocus:" + _textFocusNode.hasFocus.toString());
@@ -118,14 +115,13 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     } else {
       _isKeyboardOpen = true;
       _onKeyboardChanged(true);
-      
     }
   }
 
   _onKeyboardChanged(bool isVisible) {
     if (isVisible) {
       if (_textFocusNode.hasFocus) {
-        _waitTimeScrollToEnd(100,300);
+        _waitTimeScrollToEnd(100, 300);
       }
     } else {
       //print("KEYBOARD HIDDEN");
@@ -135,20 +131,18 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     }
   }
 
-
   _waitTimeScrollToEnd([time = 1000, animationTime = 500]) {
-      Timer(Duration(milliseconds: time), () {
-        if(_controller.position.maxScrollExtent > 0) {
-          _scrollToEnd(animationTime);
-        }
-      });
+    Timer(Duration(milliseconds: time), () {
+      if (_controller.position.maxScrollExtent > 0) {
+        _scrollToEnd(animationTime);
+      }
+    });
   }
 
-
   //滑动到底部
-  _scrollToEnd([animationTime = 500]) async{
+  _scrollToEnd([animationTime = 500]) async {
     //print("scroll end");
-    if(_controller.position.maxScrollExtent == 0) {
+    if (_controller.position.maxScrollExtent == 0) {
       return;
     }
 
@@ -157,15 +151,17 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     //List<String> t;
     double scrollValue = _controller.position.maxScrollExtent;
     //print('scroll to $scrollValue');
-    _controller.animateTo(scrollValue,
-      duration: Duration(milliseconds: animationTime), curve: Curves.easeIn).then((value){
-        print("");
-          //print('value:' + (_controller.offset).toString() + "  max:" + _controller.position.maxScrollExtent.toString());
-          if(_controller.offset < _controller.position.maxScrollExtent) {
-            _scrollToEnd(200);
-          }
+    _controller
+        .animateTo(scrollValue,
+            duration: Duration(milliseconds: animationTime),
+            curve: Curves.easeIn)
+        .then((value) {
+      print("");
+      //print('value:' + (_controller.offset).toString() + "  max:" + _controller.position.maxScrollExtent.toString());
+      if (_controller.offset < _controller.position.maxScrollExtent) {
+        _scrollToEnd(200);
       }
-    );
+    });
   }
 
   Future<Null> _onRefresh() async {
@@ -235,20 +231,21 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       return Card(
           child: Container(
               child: Image(
-                  image: NetworkImage(url),
-                  fit: BoxFit.cover,
-                  width: maxWidth,
-              )));
-    } else if (text.startsWith("[牙牙")) {//动态表情
+        image: NetworkImage(url),
+        fit: BoxFit.cover,
+        width: maxWidth,
+      )));
+    } else if (text.startsWith("[牙牙")) {
+      //动态表情
       String yayaEmoji = EmojiUtil.yaya(text);
       if (yayaEmoji != null) {
         return Card(
             child: Container(
                 width: 128,
                 child: Image(
-                    image: AssetImage(yayaEmoji),
-                    fit: BoxFit.cover,
-                    width: maxWidth,
+                  image: AssetImage(yayaEmoji),
+                  fit: BoxFit.cover,
+                  width: maxWidth,
                 )));
       }
     }
@@ -256,11 +253,11 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         child: Container(
             padding: EdgeInsets.all(10),
             child: ConstrainedBox(
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                child: Text(text,
-                    maxLines: 10,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.subhead),
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Text(text,
+                  maxLines: 10,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context).textTheme.subhead),
             )));
   }
 
@@ -306,7 +303,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
                   _msgContentBuild(msg)
                 ],
               ),
-              Text(dateFormat(date,""))
+              Text(dateFormat(date, ""))
             ],
           ),
           _avatar(fromUser, EdgeInsets.only(left: 8.0, top: 8.0))
@@ -329,7 +326,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
               children: <Widget>[
                 Text(fromUser.name, style: Theme.of(context).textTheme.subhead),
                 _msgContentBuild(msg),
-                Text(dateFormat(date,''))
+                Text(dateFormat(date, ''))
               ],
             ),
           ],
@@ -338,19 +335,18 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
   //no check
   void _sendText(String text) {
-
     //BottomNa
     SessionEntry session = widget.session;
     MessageEntry messageEntry =
         imHelper.buildTextMsg(text, session.sessionId, session.sessionType);
     messageEntry.sendStatus = IMMsgSendStatus.Sending;
     messageEntry.time = currentUnixTime();
-    allMsgs.add(messageEntry); 
+    allMsgs.add(messageEntry);
     setState(() {
-       //_scrollToEnd();
-       _waitTimeScrollToEnd(500);
+      //_scrollToEnd();
+      _waitTimeScrollToEnd(500);
     });
-    
+
     imHelper
         .sendTextMsg(text, session.sessionId, session.sessionType)
         .then((result) {
@@ -429,67 +425,84 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
   selectImage() async {
     var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-    return _sendImage(image);
+    if(image != null) {
+        return _sendImage(image);
+    }
   }
 
-  _sendImage(File file) async{
+  takePhoto() async {
+    var image = await ImagePicker.pickImage(source: ImageSource.camera);
+    if(image != null) {
+        print(image);
+        return _sendImage(image);
+    }
+  }
+
+  _sendImage(File file) async {
     var dio = new Dio();
     FormData formData = new FormData.from({
-      "file": new UploadFileInfo(new File("/Users/xiaominfc/Pictures/origin_1.png"), "origin_1.png")
+      "file": new UploadFileInfo(
+          new File("/Users/xiaominfc/Pictures/origin_1.png"), "origin_1.png")
     });
     var response = await dio.post("http://msfs.xiaominfc.com/", data: formData);
 
-    if(response.statusCode == 200) {
+    if (response.statusCode == 200) {
       Map<String, dynamic> result = jsonDecode(response.data);
       //_sendText("");
     }
   }
 
   Widget _buildPanel(double maxHeight) {
-    if(this.panelType == _PanelType.Emoji) {
-        return _buildEmojiPanel(maxHeight);
+    if (this.panelType == _PanelType.Emoji) {
+      return _buildEmojiPanel(maxHeight);
     }
     return Container(
-        height: maxHeight, 
+        height: maxHeight,
         child: Center(
-            child:Row(children: <Widget>[
-              Container(
-                margin: EdgeInsets.all(20),
-                padding: EdgeInsets.all(20),
-                child: GestureDetector(
-                  onTap: () {
-                    selectImage();
-                  },
-                  child:Icon(Icons.add_a_photo),
+            child: Row(
+          children: <Widget>[
+            Container(
+              margin: EdgeInsets.all(20),
+              padding: EdgeInsets.all(20),
+              child: GestureDetector(
+                onTap: () {
+                  selectImage();
+                },
+                child: Image.asset("images/picture_tools.png", width:40, height:40),
               ),
+            ),
+            Container(
+              margin: EdgeInsets.all(20),
+              padding: EdgeInsets.all(20),
+              child: GestureDetector(
+                onTap: () {
+                  takePhoto();
+                },
+                child: Image.asset("images/photo_tools.png", width: 40,height:40 ),
               ),
-              
-            ],)
-            //child:Text('not implement tools panel!')
-            )
-        );
+            ),
+          ],
+        )));
   }
 
- 
   _toggleToPanelType(int targetType) {
-    if(_showPanel && panelType == targetType) {
+    if (_showPanel && panelType == targetType) {
       _showPanel = !_showPanel;
-    }else if(!_showPanel) {
+    } else if (!_showPanel) {
       _showPanel = !_showPanel;
       panelType = targetType;
-    }else {
+    } else {
       panelType = targetType;
     }
     if (_showPanel) {
       if (_isKeyboardOpen) {
-        FocusScope.of(context).requestFocus(
-            new FocusNode()); //show panel after hide keyboard
+        FocusScope.of(context)
+            .requestFocus(new FocusNode()); //show panel after hide keyboard
         return;
       }
     }
     setState(() {});
   }
-
 
   Widget _textComposerWidget() {
     return new IconTheme(
@@ -534,7 +547,6 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
                       onPressed: () {
                         _toggleToPanelType(_PanelType.Emoji);
                         //_showPanel = !_showPanel;
-                        
                       },
                     ),
                   )
