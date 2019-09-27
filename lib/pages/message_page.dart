@@ -440,12 +440,14 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
   _sendImage(File file) async {
     var dio = new Dio();
+    
+    String fileName = file.path.split("/").last;
+
     FormData formData = new FormData.from({
       "file": new UploadFileInfo(
-          new File("/Users/xiaominfc/Pictures/origin_1.png"), "origin_1.png")
+          file, fileName)
     });
     var response = await dio.post("http://msfs.xiaominfc.com/", data: formData);
-
     if (response.statusCode == 200) {
       Map<String, dynamic> result = jsonDecode(response.data);
       //_sendText("");
