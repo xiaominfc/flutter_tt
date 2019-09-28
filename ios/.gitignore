@@ -12,7 +12,6 @@ Icon?
 **/Pods/
 **/.symlinks/
 profile
-Podfile.lock
 xcuserdata
 **/.generated/
 Flutter/App.framework
@@ -30,3 +29,6 @@ Runner/GeneratedPluginRegistrant.*
 !default.mode2v3
 !default.pbxuser
 !default.perspectivev3
+
+
+Podfile.lock

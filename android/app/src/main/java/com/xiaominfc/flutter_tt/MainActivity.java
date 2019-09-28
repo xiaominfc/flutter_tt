@@ -1,4 +1,4 @@
-package xiaominfc.com.flutter_tt;
+package com.xiaominfc.flutter_tt;
 
 import android.os.Bundle;
 import io.flutter.app.FlutterActivity;
