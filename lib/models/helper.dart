@@ -36,6 +36,10 @@ int currentUnixTime() {
 }
 
 class IMHelper {
+
+  static final DD_MESSAGE_IMAGE_PREFIX = "&\$#@~^@[{:";
+  static final DD_MESSAGE_IMAGE_SUFFIX = ":}]&\$~@#@";
+
   TTSecurity security = TTSecurity.DefaultSecurity();
   static IMHelper _instance;
   EventBus eventBus = EventBus(sync: true);
@@ -264,7 +268,7 @@ class IMHelper {
   decodeToImage(msgData) {
     try {
       var tmplastMsg = utf8.decode(msgData);
-      if (tmplastMsg.length > 10 && tmplastMsg.startsWith("&\$#@~^@[{:")) {
+      if (tmplastMsg.length > 10 && tmplastMsg.startsWith(DD_MESSAGE_IMAGE_PREFIX)) {
         return tmplastMsg;
       }
       return security.decryptText(tmplastMsg);
@@ -276,14 +280,14 @@ class IMHelper {
     String lastMsg = '';
     try {
       var tmplastMsg = utf8.decode(msgData);
-      if (tmplastMsg.length > 10 && tmplastMsg.startsWith("&\$#@~^@[{:")) {
+      if (tmplastMsg.length > 10 && tmplastMsg.startsWith(DD_MESSAGE_IMAGE_PREFIX)) {
         lastMsg = '[图片]';
       } else if (msgType == MsgType.MSG_TYPE_GROUP_AUDIO.value ||
           msgType == MsgType.MSG_TYPE_SINGLE_AUDIO.value) {
         lastMsg = '[语音]';
       } else {
         lastMsg = security.decryptText(tmplastMsg);
-        if (lastMsg.length > 10 && lastMsg.startsWith("&\$#@~^@[{:")) {
+        if (lastMsg.length > 10 && lastMsg.startsWith(DD_MESSAGE_IMAGE_PREFIX)) {
           lastMsg = '[图片]';
         }
       }

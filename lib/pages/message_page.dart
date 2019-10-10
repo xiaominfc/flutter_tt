@@ -228,10 +228,17 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     if (text == '[图片]') {
       String url = imHelper.decodeToImage(msg.msgData);
       url = url.substring(10, url.length - 9);
+      print(url);
+      ImageProvider  imageProvider = null;
+      if(url.startsWith("http")) {
+        imageProvider = NetworkImage(url);
+      }else {
+         imageProvider = FileImage(File(url));
+      }
       return Card(
           child: Container(
               child: Image(
-        image: NetworkImage(url),
+        image: imageProvider,
         fit: BoxFit.cover,
         width: maxWidth,
       )));
@@ -333,9 +340,8 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
         ));
   }
 
-  //no check
-  void _sendText(String text) {
-    //BottomNa
+
+  MessageEntry _appendSendingText(String text) {
     SessionEntry session = widget.session;
     MessageEntry messageEntry =
         imHelper.buildTextMsg(text, session.sessionId, session.sessionType);
@@ -346,7 +352,13 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       //_scrollToEnd();
       _waitTimeScrollToEnd(500);
     });
+    return messageEntry;
+  }
 
+  //no check
+  void _sendText(String text) {
+    SessionEntry session = widget.session;
+    MessageEntry messageEntry =  _appendSendingText(text);
     imHelper
         .sendTextMsg(text, session.sessionId, session.sessionType)
         .then((result) {
@@ -439,10 +451,12 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   }
 
   _sendImage(File file) async {
-    var dio = new Dio();
     
+    SessionEntry session = widget.session;
+    MessageEntry messageEntry =  _appendSendingText(IMHelper.DD_MESSAGE_IMAGE_PREFIX +  file.path + IMHelper.DD_MESSAGE_IMAGE_SUFFIX);
+    
+    var dio = new Dio();
     String fileName = file.path.split("/").last;
-
     FormData formData = new FormData.from({
       "file": new UploadFileInfo(
           file, fileName)
@@ -450,7 +464,25 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     var response = await dio.post("http://msfs.xiaominfc.com/", data: formData);
     if (response.statusCode == 200) {
       Map<String, dynamic> result = jsonDecode(response.data);
+      //print(result);
       //_sendText("");
+      String url = IMHelper.DD_MESSAGE_IMAGE_PREFIX + result['url'] + IMHelper.DD_MESSAGE_IMAGE_SUFFIX;
+      imHelper
+        .sendTextMsg(url, session.sessionId, session.sessionType)
+        .then((result) {
+      setState(() {
+        if (result != null) {
+          messageEntry.msgId = result.msgId;
+          messageEntry.msgText="[图片]";
+          messageEntry.sendStatus = IMMsgSendStatus.Ok;
+          session.lastMsg = "[图片]";
+          session.updatedTime = result.time;
+        } else {
+          messageEntry.sendStatus = IMMsgSendStatus.Failed;
+        }
+      });
+    });
+
     }
   }
 
