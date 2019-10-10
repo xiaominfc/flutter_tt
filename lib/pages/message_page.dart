@@ -12,7 +12,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-//import 'package:image_picker/image_picker.dart';
+import 'package:image_picker/image_picker.dart';
 import '../models/dao.dart';
 import '../models/helper.dart';
 import 'package:event_bus/event_bus.dart';
@@ -424,18 +424,18 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   }
 
   selectImage() async {
-    //var image = await ImagePicker.pickImage(source: ImageSource.gallery);
-    //if(image != null) {
-    //    return _sendImage(image);
-   // }
+    var image = await ImagePicker.pickImage(source: ImageSource.gallery);
+    if(image != null) {
+        return _sendImage(image);
+    }
   }
 
   takePhoto() async {
-   // var image = await ImagePicker.pickImage(source: ImageSource.camera);
-   // if(image != null) {
-   //     print(image);
-   //     return _sendImage(image);
-   // }
+    var image = await ImagePicker.pickImage(source: ImageSource.camera);
+    if(image != null) {
+        print(image);
+        return _sendImage(image);
+     }
   }
 
   _sendImage(File file) async {

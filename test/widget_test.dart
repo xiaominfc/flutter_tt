@@ -10,6 +10,15 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:flutter_tt/main.dart';
 
+
+class People {
+  final String name;
+
+  People(this.name){
+  }
+}
+
+
 void main() {
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
