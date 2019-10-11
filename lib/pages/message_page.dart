@@ -222,7 +222,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   // 构建内容显示
 
   Widget _msgContentBuild(MessageEntry msg) {
-    double maxWidth = MediaQuery.of(context).size.width * 0.7;
+    double maxWidth = MediaQuery.of(context).size.width * 0.6;
     String text = imHelper.decodeMsgData(msg.msgData, msg.msgType);
 
     if (text == '[图片]') {
@@ -443,7 +443,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   }
 
   takePhoto() async {
-    var image = await ImagePicker.pickImage(source: ImageSource.camera);
+    var image = await ImagePicker.pickImage(source: ImageSource.camera, imageQuality: 80);
     if(image != null) {
         print(image);
         return _sendImage(image);
@@ -464,7 +464,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     var response = await dio.post("http://msfs.xiaominfc.com/", data: formData);
     if (response.statusCode == 200) {
       Map<String, dynamic> result = jsonDecode(response.data);
-      //print(result);
+      print(result);
       //_sendText("");
       String url = IMHelper.DD_MESSAGE_IMAGE_PREFIX + result['url'] + IMHelper.DD_MESSAGE_IMAGE_SUFFIX;
       imHelper
