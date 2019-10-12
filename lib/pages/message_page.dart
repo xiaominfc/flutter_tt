@@ -19,6 +19,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:toast/toast.dart';
 import '../utils/emoji_utils.dart';
 import '../utils/utils.dart';
+import 'package:toast/toast.dart';
 
 class _PanelType {
   static const int Normal = 0;
@@ -140,13 +141,18 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   }
 
   //滑动到底部
-  _scrollToEnd([animationTime = 500]) async {
-    //print("scroll end");
+  _scrollToEnd([animationTime = 500,doTime = 3]) async {
+    print("scroll end");
     if (_controller.position.maxScrollExtent == 0) {
       return;
     }
 
     //String t;
+    doTime--;
+    if(doTime <= 0) {
+      //防止异常导致死循环
+      return;
+    }
 
     //List<String> t;
     double scrollValue = _controller.position.maxScrollExtent;
@@ -156,10 +162,10 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
             duration: Duration(milliseconds: animationTime),
             curve: Curves.easeIn)
         .then((value) {
-      print("");
-      //print('value:' + (_controller.offset).toString() + "  max:" + _controller.position.maxScrollExtent.toString());
+      
+      print('value:' + (_controller.offset).toString() + "  max:" + _controller.position.maxScrollExtent.toString());
       if (_controller.offset < _controller.position.maxScrollExtent) {
-        _scrollToEnd(200);
+        _scrollToEnd(200,doTime);
       }
     });
   }
@@ -237,11 +243,14 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       }
       return Card(
           child: Container(
-              child: Image(
-        image: imageProvider,
-        fit: BoxFit.cover,
-        width: maxWidth,
-      )));
+              child:FadeInImage(
+                        image: imageProvider,
+                        width: maxWidth,
+                        fit:BoxFit.cover,
+                        placeholder: AssetImage('images/tt_default_image.png'),
+                      ),
+              )
+          );
     } else if (text.startsWith("[牙牙")) {
       //动态表情
       String yayaEmoji = EmojiUtil.yaya(text);
@@ -451,10 +460,10 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   }
 
   _sendImage(File file) async {
-    
+
     SessionEntry session = widget.session;
     MessageEntry messageEntry =  _appendSendingText(IMHelper.DD_MESSAGE_IMAGE_PREFIX +  file.path + IMHelper.DD_MESSAGE_IMAGE_SUFFIX);
-    
+
     var dio = new Dio();
     String fileName = file.path.split("/").last;
     FormData formData = new FormData.from({
@@ -465,23 +474,29 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     if (response.statusCode == 200) {
       Map<String, dynamic> result = jsonDecode(response.data);
       print(result);
-      //_sendText("");
-      String url = IMHelper.DD_MESSAGE_IMAGE_PREFIX + result['url'] + IMHelper.DD_MESSAGE_IMAGE_SUFFIX;
-      imHelper
-        .sendTextMsg(url, session.sessionId, session.sessionType)
-        .then((result) {
-      setState(() {
-        if (result != null) {
-          messageEntry.msgId = result.msgId;
-          messageEntry.msgText="[图片]";
-          messageEntry.sendStatus = IMMsgSendStatus.Ok;
-          session.lastMsg = "[图片]";
-          session.updatedTime = result.time;
-        } else {
-          messageEntry.sendStatus = IMMsgSendStatus.Failed;
-        }
-      });
-    });
+      if(result['error_code'] == 0) {
+        //_sendText("");
+        String url = IMHelper.DD_MESSAGE_IMAGE_PREFIX + result['url'] + IMHelper.DD_MESSAGE_IMAGE_SUFFIX;
+        imHelper
+            .sendTextMsg(url, session.sessionId, session.sessionType)
+            .then((result) {
+              setState(() {
+                if (result != null) {
+                  messageEntry.msgId = result.msgId;
+                  messageEntry.msgText="[图片]";
+                  messageEntry.sendStatus = IMMsgSendStatus.Ok;
+                  session.lastMsg = "[图片]";
+                  session.updatedTime = result.time;
+                } else {
+                  messageEntry.sendStatus = IMMsgSendStatus.Failed;
+                }
+              });
+            });
+
+      }else {
+        messageEntry.sendStatus = IMMsgSendStatus.Failed;
+        Toast.show(result['error_msg'],  context, gravity:Toast.CENTER); 
+      }
 
     }
   }
