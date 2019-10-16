@@ -20,6 +20,8 @@ import 'package:toast/toast.dart';
 import '../utils/emoji_utils.dart';
 import '../utils/utils.dart';
 import 'package:toast/toast.dart';
+import './preview_page.dart';
+
 
 class _PanelType {
   static const int Normal = 0;
@@ -242,14 +244,20 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
          imageProvider = FileImage(File(url));
       }
       return Card(
-          child: Container(
+          child: 
+          GestureDetector(
+          onTap:(){
+             navigatePushPage(this.context, PreviewPage(url));        
+          },
+          child:Container(
               child:FadeInImage(
                         image: imageProvider,
                         width: maxWidth,
                         fit:BoxFit.cover,
                         placeholder: AssetImage('images/tt_default_image.png'),
                       ),
-              )
+                )
+          )
           );
     } else if (text.startsWith("[牙牙")) {
       //动态表情
