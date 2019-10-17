@@ -236,7 +236,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     if (text == '[图片]') {
       String url = imHelper.decodeToImage(msg.msgData);
       url = url.substring(10, url.length - 9);
-      print(url);
+     // print(url);
       ImageProvider  imageProvider = null;
       if(url.startsWith("http")) {
         imageProvider = NetworkImage(url);

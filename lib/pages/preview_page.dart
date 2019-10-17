@@ -36,19 +36,20 @@ class _PreviewPageState extends State<PreviewPage> {
     }else {
       imageProvider = FileImage(File(url));
     }
-    return Container(
-        color:Colors.black,
-        child:GestureDetector(
-            onTap:(){
-                Navigator.pop(context);
-            },
-            child:Stack(
-            children:<Widget>[
-              Center(child:CircularProgressIndicator()),
-              Center(child:Image(image:imageProvider))
-            ]
-        )
-        )
+    return  
+        GestureDetector(
+        onTap:(){
+          Navigator.pop(context);
+        },
+        child:Container(
+                  color:Colors.black,
+                  child:Stack(
+                      children:<Widget>[
+                        Center(child:CircularProgressIndicator()),
+                        Center(child:Image(image:imageProvider))
+                      ]
+                  )
+              )
     );
   }
 } 
