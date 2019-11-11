@@ -8,6 +8,7 @@
 import 'package:flutter/material.dart';
 import '../utils/utils.dart';
 import 'home_page.dart';
+import 'register_page.dart';
 import '../teamtalk_dart_lib/src/client.dart';
 import '../models/helper.dart';
 import 'package:toast/toast.dart';
@@ -30,9 +31,6 @@ class _LoginPageState extends State<LoginPage> {
   final usernameTextFieldController = TextEditingController(text: "xiaominfc");
   final passwordTextFieldController = TextEditingController(text: "123456");
 
-  static const DEFAULTLOGINSERVERURL = 'http://im.xiaominfc.com:8080/msg_server';
-  
-
   @override
   initState(){
     super.initState();
@@ -51,7 +49,7 @@ class _LoginPageState extends State<LoginPage> {
       usernameTextFieldController.text = name;
       passwordTextFieldController.text = password;
       setState(() {
-        
+
       });
       if(!diableAutoLogin) {
         _doLogin();
@@ -85,7 +83,7 @@ class _LoginPageState extends State<LoginPage> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     var loginServerUrl = prefs.getString("login_server_url");
     if(loginServerUrl == null) {
-      loginServerUrl = DEFAULTLOGINSERVERURL;
+      loginServerUrl = IMHelper.DEFAULTLOGINSERVERURL;
     }
     var imClient = new IMClient()
         .init(username, password, loginServerUrl);
@@ -114,101 +112,98 @@ class _LoginPageState extends State<LoginPage> {
 
 
   Future<String> _asyncInputDialog(BuildContext context) async {
-  
-  final textFieldController = TextEditingController(text: DEFAULTLOGINSERVERURL);
-  SharedPreferences prefs = await SharedPreferences.getInstance();
-  var loginServerUrl = prefs.getString("login_server_url");
-  if(loginServerUrl == null) {
-    loginServerUrl = DEFAULTLOGINSERVERURL;
-  }
-  textFieldController.text = loginServerUrl;
-  return showDialog<String>(
-    context: context,
-    barrierDismissible: false, // dialog is dismissible with a tap on the barrier
-    builder: (BuildContext context) {
-      return AlertDialog(
-        title: Text('login_server地址编辑:'),
-        content: new Row(
-          children: <Widget>[
-            new Expanded(
-                child: new TextField(
-                  controller: textFieldController,
-              autofocus: true,
-              decoration: new InputDecoration(
-                  labelText: 'url', hintText: DEFAULTLOGINSERVERURL),
-            ))
-          ],
-        ),
-        actions: <Widget>[
-          FlatButton(
-            child: Text('确认'),
-            onPressed: () {
-              var text = textFieldController.text;
-              if(text.length > 0 && text.startsWith('http')) {
-                prefs.setString('login_server_url',text);
-                Navigator.of(context).pop(text);
-              }else {
-                Toast.show('地址无效',  context, gravity:Toast.CENTER);
-              }
-            },
-          ),
-        ],
-      );
-    },
-  );
-}
 
-  @override
-  Widget build(BuildContext context) {
+    final textFieldController = TextEditingController(text: IMHelper.DEFAULTLOGINSERVERURL);
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    var loginServerUrl = prefs.getString("login_server_url");
+    if(loginServerUrl == null) {
+      loginServerUrl = IMHelper.DEFAULTLOGINSERVERURL;
+    }
+    textFieldController.text = loginServerUrl;
+    return showDialog<String>(
+        context: context,
+        barrierDismissible: false, // dialog is dismissible with a tap on the barrier
+        builder: (BuildContext context) {
+          return AlertDialog(
+              title: Text('login_server地址编辑:'),
+              content: new Row(
+                  children: <Widget>[
+                    new Expanded(
+                        child: new TextField(
+                            controller: textFieldController,
+                            autofocus: true,
+                            decoration: new InputDecoration(
+                                labelText: 'url', hintText: IMHelper.DEFAULTLOGINSERVERURL),
+                        ))
+                  ],
+              ),
+              actions: <Widget>[
+                FlatButton(
+                    child: Text('确认'),
+                    onPressed: () {
+                      var text = textFieldController.text;
+                      if(text.length > 0 && text.startsWith('http')) {
+                        prefs.setString('login_server_url',text);
+                        Navigator.of(context).pop(text);
+                      }else {
+                        Toast.show('地址无效',  context, gravity:Toast.CENTER);
+                      }
+                    },
+                ),
+              ],
+              );
+        },
+        );
+  }
+
+
+  Widget buildLoginContent(BuildContext context){
     final passwordTextField = TextField(
-      controller: passwordTextFieldController,
-      decoration: InputDecoration(
-        contentPadding: textFieldPadding,
-        labelText: "密码",
-       // border: textFieldBorder,
-      ),
-      obscureText: true,
-      style: style,
+        controller: passwordTextFieldController,
+        decoration: InputDecoration(
+            contentPadding: textFieldPadding,
+            labelText: "密码",
+        ),
+        obscureText: true,
+        style: style,
     );
     final usernameTextField = TextField(
-      
-      controller: usernameTextFieldController,
-      decoration: InputDecoration(
-        contentPadding: textFieldPadding,
-        labelText: "账号",
-      ),
-      style: style,
+        controller: usernameTextFieldController,
+        decoration: InputDecoration(
+            contentPadding: textFieldPadding,
+            labelText: "账号",
+        ),
+        style: style,
     );
 
     final loginButon = Material(
-      elevation: 5.0,
-      borderRadius: BorderRadius.circular(30.0),
-      color: Colors.blue,
-      child: MaterialButton(
-        minWidth: MediaQuery.of(context).size.width,
-        padding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
-        onPressed: _doLogin,
-        child: Text("登录",
-            textAlign: TextAlign.center,
-            style: style.copyWith(
-                color: Colors.white, fontWeight: FontWeight.bold)),
-      ),
+        elevation: 5.0,
+        borderRadius: BorderRadius.circular(30.0),
+        color: Colors.blue,
+        child: MaterialButton(
+            minWidth: MediaQuery.of(context).size.width,
+            padding: EdgeInsets.fromLTRB(20.0, 15.0, 20.0, 15.0),
+            onPressed: _doLogin,
+            child: Text("登录",
+                textAlign: TextAlign.center,
+                style: style.copyWith(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
+        ),
     );
 
-    var loginContentWidget = ListView(
-            //mainAxisSize: MainAxisSize.min,
-            shrinkWrap: false,
-            children :<Widget>[ 
-              Center(
-                child: Container(
-                  margin: const EdgeInsets.all(16),
-                  width: 128,
-                  child:  Image.asset('images/logo.png')
-                  ),
-              ),
-              Card(
-                margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                child: Padding(
+    return ListView(
+        shrinkWrap: false,
+        children :<Widget>[ 
+        Center(
+            child: Container(
+                margin: const EdgeInsets.all(16),
+                width: 128,
+                child:  Image.asset('images/logo.png')
+            ),
+        ),
+        Card(
+            margin: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+            child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 32),
                 child: Column(
                     mainAxisSize:MainAxisSize.min,
@@ -221,32 +216,48 @@ class _LoginPageState extends State<LoginPage> {
                       loginButon
                     ],
                 ),
-                )
-              )
-            ],
-          );
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("登录"),
-        actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.settings),
-              onPressed: () {
-                _asyncInputDialog(context);
-              },
-            ),],
-      ),
-      body: SafeArea(child:Stack(
-        children: <Widget>[
-          loginContentWidget,
-          Center(
-              child: logining
-                  ? CircularProgressIndicator(
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.black12),
-                    )
-                  : null),
+            )
+        ),
+        Center(
+            child:GestureDetector(
+                child:Padding(
+                    padding:const EdgeInsets.only(top:20,left:40,right:40,bottom:20),
+                    child:Text('注册',style:TextStyle(textBaseline:TextBaseline.ideographic))
+                ),
+                onTap:(){
+                  navigatePushPage(context, new RegisterPage()); 
+                }
+            )
+        )
         ],
-      ),),
-    );
+      );
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+        appBar: AppBar(
+            title: Text("登录"),
+            actions: <Widget>[
+              IconButton(
+                  icon: Icon(Icons.settings),
+                  onPressed: () {
+                    _asyncInputDialog(context);
+                  },
+              ),],
+        ),
+        body: SafeArea(child:Stack(
+                children: <Widget>[
+                  buildLoginContent(context),
+                  Center(
+                      child: logining
+                      ? CircularProgressIndicator(
+                          valueColor: AlwaysStoppedAnimation<Color>(Colors.black12),
+                      )
+                      : null),
+                ],
+        ),),
+        );
   }
 }

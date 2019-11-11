@@ -36,7 +36,7 @@ int currentUnixTime() {
 }
 
 class IMHelper {
-
+  static const DEFAULTLOGINSERVERURL = 'http://im.xiaominfc.com:8080/msg_server';
   static final DD_MESSAGE_IMAGE_PREFIX = "&\$#@~^@[{:";
   static final DD_MESSAGE_IMAGE_SUFFIX = ":}]&\$~@#@";
 
