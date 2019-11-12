@@ -15,6 +15,8 @@ import 'package:dio/dio.dart';
 import '../teamtalk_dart_lib/src/client.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:toast/toast.dart';
+import 'dart:convert';
+import 'package:image_picker/image_picker.dart';
 
 class RegisterPage extends StatefulWidget {
   
@@ -32,6 +34,7 @@ class RegisterUser {
   String email = "";
   String phone = "";
   int sex = 0;
+  String avatar = null;
 
   toJson()=> {
     'name':name,
@@ -39,7 +42,8 @@ class RegisterUser {
     'password':password,
     'sex':sex,
     'phone':phone,
-    'email':email
+    'email':email,
+    'avatar':avatar
   };
 }
 
@@ -105,6 +109,24 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
 
+  _select_avatar() async{
+    var imageFile = await ImagePicker.pickImage(source: ImageSource.gallery);
+    var dio = new Dio();
+    String fileName = imageFile.path.split("/").last;
+    FormData formData = new FormData.from({
+      "file": new UploadFileInfo(
+          imageFile, fileName)
+    });
+    var response = await dio.post("http://msfs.xiaominfc.com/", data: formData);
+    if (response.statusCode == 200) {
+      Map<String, dynamic> result = jsonDecode(response.data);
+      setState((){
+        rUser.avatar = result['url'];
+      });
+    }
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -119,6 +141,15 @@ class _RegisterPageState extends State<RegisterPage> {
                 child:ListView(
                     shrinkWrap: false,
                     children:<Widget>[
+                      GestureDetector(
+                            child:CircleAvatar(
+                               radius: 40.0,
+                               child:rUser.avatar==null?Image.asset('./images/tt_upload_avatar.png'):Image.network(rUser.avatar)  
+                                ),
+                            onTap:(){
+                              _select_avatar();
+                            }
+                          ),
                       TextFormField(
                           decoration: InputDecoration(
                               labelText:'账号'

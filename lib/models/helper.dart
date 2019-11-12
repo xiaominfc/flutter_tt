@@ -324,7 +324,9 @@ class IMHelper {
 
   void clearUnReadCntBySessionKey(String sessionKey) {
     SessionEntry sessionEntry = getSessionBySessionKey(sessionKey);
-    sessionEntry.unreadCnt = 0;
+    if(sessionEntry != null) {
+      sessionEntry.unreadCnt = 0;
+    }
     //unreadInfoMap.remove(sessionKey);
   }
 
