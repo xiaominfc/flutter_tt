@@ -38,18 +38,18 @@ class _PreviewPageState extends State<PreviewPage> {
     }
     return  
         GestureDetector(
-        onTap:(){
-          Navigator.pop(context);
-        },
-        child:Container(
-                  color:Colors.black,
-                  child:Stack(
-                      children:<Widget>[
-                        Center(child:CircularProgressIndicator()),
-                        Center(child:Image(image:imageProvider))
-                      ]
+            onTap:(){
+              Navigator.pop(context);
+            },
+            child:Container(
+                      color:Colors.black,
+                      child:Stack(
+                          children:<Widget>[
+                            Center(child:CircularProgressIndicator()),
+                            Center(child:Image(image:imageProvider))
+                          ]
+                      )
                   )
-              )
-    );
+        );
   }
 } 

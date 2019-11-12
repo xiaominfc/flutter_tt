@@ -142,14 +142,14 @@ class _RegisterPageState extends State<RegisterPage> {
                     shrinkWrap: false,
                     children:<Widget>[
                       GestureDetector(
-                            child:CircleAvatar(
-                               radius: 40.0,
-                               child:rUser.avatar==null?Image.asset('./images/tt_upload_avatar.png'):Image.network(rUser.avatar)  
-                                ),
-                            onTap:(){
-                              _select_avatar();
-                            }
+                          child:CircleAvatar(
+                              radius: 40.0,
+                              child:rUser.avatar==null?Image.asset('./images/tt_upload_avatar.png'):Image.network(rUser.avatar)  
                           ),
+                          onTap:(){
+                            _select_avatar();
+                          }
+                      ),
                       TextFormField(
                           decoration: InputDecoration(
                               labelText:'账号'
