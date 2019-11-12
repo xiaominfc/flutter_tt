@@ -29,13 +29,17 @@ class RegisterUser {
   String name;
   String password;
   String nick;
+  String email = "";
+  String phone = "";
   int sex = 0;
 
   toJson()=> {
     'name':name,
     'nick':nick,
     'password':password,
-    'sex':sex
+    'sex':sex,
+    'phone':phone,
+    'email':email
   };
 }
 
@@ -63,17 +67,17 @@ class _RegisterPageState extends State<RegisterPage> {
     if(loginServerUrl == null) {
       loginServerUrl = IMHelper.DEFAULTLOGINSERVERURL;
     }
-    var imClient = new IMClient()
-        .init(rUser.name, rUser.password, loginServerUrl);
+    var imClient = new IMClient().init(rUser.name, rUser.password, loginServerUrl);
     imClient.requesetMsgSever().then((serverInfo) {
       print(serverInfo);
       if (serverInfo == null) {
+
         return;
       }
       _postNewUser(serverInfo['baseUrl']).then((var result){
       if(result == null) {
         imClient
-            .doLogin(serverInfo['priorIP'], int.parse(serverInfo['port']))
+          .doLogin(serverInfo['priorIP'], int.parse(serverInfo['port']))
             .then((loginResult){
               if (loginResult.result) {
                 prefs.setString('login_username', rUser.name);
@@ -83,7 +87,7 @@ class _RegisterPageState extends State<RegisterPage> {
                   _showHome();
                 });
               } else {
-                print("login failed!");
+                Toast.show("登录失败",context,gravity: Toast.CENTER);
               }
             });
 
@@ -112,7 +116,8 @@ class _RegisterPageState extends State<RegisterPage> {
             key:_formKey,
             child:Padding(
                 padding:EdgeInsets.all(20),
-                child:Column(
+                child:ListView(
+                    shrinkWrap: false,
                     children:<Widget>[
                       TextFormField(
                           decoration: InputDecoration(
@@ -158,9 +163,8 @@ class _RegisterPageState extends State<RegisterPage> {
                             return null;
                           }
                       ),
-
                       Row(children:<Widget>[
-                        Text("女"),
+                        Text("性别:女"),
                         Radio(value:0,groupValue:rUser.sex,onChanged:(int value){
                           setState((){
                             rUser.sex = 0;
@@ -173,20 +177,38 @@ class _RegisterPageState extends State<RegisterPage> {
                           });
                         }),
                       ]),
-                      Divider(height:20),
+                      TextFormField(
+                          decoration: InputDecoration(
+                              labelText:'phone'
+                          ),
+                          onSaved:(String value){
+                            rUser.phone = value;
+
+                          }
+                      ),
+                      TextFormField(
+                          decoration: InputDecoration(
+                              labelText:'email'
+                          ),
+                          onSaved:(String value){
+                            rUser.email = value;
+
+                          }
+                      ),
+                      Divider(height:20,color:Colors.white),
                       Material(
                           elevation:5.0,
                           borderRadius: BorderRadius.circular(30.0),
                           color: Colors.blue,
                           child:MaterialButton(
+                              minWidth:MediaQuery.of(context).size.width,
                               padding:EdgeInsets.fromLTRB(20,15,20,15),
                               child:Text("提交",
-                                  textAlign:TextAlign.center),
+                                  textAlign:TextAlign.center,
+                                  style:TextStyle(color:Colors.white, fontSize: 20.0)),
                               onPressed:(){
                                 if (_formKey.currentState.validate()) {
                                   _formKey.currentState.save();
-                                  //print(rUser.name);
-                                  //print(rUser.toJson());
                                   _doReg();
                                 }
                               }

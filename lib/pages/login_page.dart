@@ -222,7 +222,7 @@ class _LoginPageState extends State<LoginPage> {
             child:GestureDetector(
                 child:Padding(
                     padding:const EdgeInsets.only(top:20,left:40,right:40,bottom:20),
-                    child:Text('注册',style:TextStyle(textBaseline:TextBaseline.ideographic))
+                    child:Text('注册',style:TextStyle(textBaseline:TextBaseline.ideographic,fontSize:20.0))
                 ),
                 onTap:(){
                   navigatePushPage(context, new RegisterPage()); 
