@@ -44,6 +44,14 @@ flutter run
 
 ```
 
+## 测试apk
+
+[apk下载](http://admin.xiaominfc.com/download/flutter_tt_1.0.apk)
+
+
+
+
+
 ## 预览
 
 <img src="https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_1.png" width="50%" />
@@ -54,11 +62,6 @@ flutter run
 
 <img src="https://raw.githubusercontent.com/xiaominfc/flutter_tt/master/preview/ios_4.png" width="50%" />
 
-
-
-## 测试apk
-
-[apk下载](http://admin.xiaominfc.com/download/flutter_tt_1.0.apk)
 
 
 ## ps
