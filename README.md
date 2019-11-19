@@ -56,6 +56,10 @@ flutter run
 
 
 
+## 测试apk
+
+[apk下载](http://admin.xiaominfc.com/download/flutter_tt_1.0.apk)
+
 
 ## ps
 
