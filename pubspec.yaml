@@ -37,6 +37,8 @@ dependencies:
   image_picker:
     git: https://github.com/xiaominfc/image_picker.git
   dio: ^2.1.16
+  opus_recorder:
+    git: https://github.com/xiaominfc/opus_recorder.git
 
 dev_dependencies:
   flutter_test:

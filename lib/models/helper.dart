@@ -13,7 +13,11 @@ import '../teamtalk_dart_lib/pb/IM.BaseDefine.pb.dart';
 import '../teamtalk_dart_lib/pb/IM.Message.pb.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'dart:io';
 import 'package:event_bus/event_bus.dart';
+import 'package:path_provider/path_provider.dart';
+
+
 
 class NewMsgEvent {
   MessageEntry msg;
@@ -265,6 +269,23 @@ class IMHelper {
     return msgs;
   }
 
+
+  decodeToAudioFile(MessageEntry message) async {
+    if(message.msgType != MsgType.MSG_TYPE_GROUP_AUDIO.value &&  message.msgType!= MsgType.MSG_TYPE_SINGLE_AUDIO.value){
+      return null;
+    }
+    Directory documentsDir = await getApplicationDocumentsDirectory();
+    var name = "audio_" + message.time.toString() + ".audio";//名字要考量一下
+    String documentsPath = documentsDir.path;
+    File file = new File('$documentsPath/$name');
+    if(file.existsSync()) {
+      return file.path;
+    }
+    file = await file.writeAsBytes(message.msgData.sublist(4));
+    return file.path;
+
+  }
+
   decodeToImage(msgData) {
     try {
       var tmplastMsg = utf8.decode(msgData);
@@ -279,17 +300,19 @@ class IMHelper {
   decodeMsgData(msgData, int msgType) {
     String lastMsg = '';
     try {
-      var tmplastMsg = utf8.decode(msgData);
-      if (tmplastMsg.length > 10 && tmplastMsg.startsWith(DD_MESSAGE_IMAGE_PREFIX)) {
-        lastMsg = '[图片]';
-      } else if (msgType == MsgType.MSG_TYPE_GROUP_AUDIO.value ||
-          msgType == MsgType.MSG_TYPE_SINGLE_AUDIO.value) {
+      if(msgType == MsgType.MSG_TYPE_GROUP_AUDIO.value || msgType == MsgType.MSG_TYPE_SINGLE_AUDIO.value) {
         lastMsg = '[语音]';
-      } else {
-        lastMsg = security.decryptText(tmplastMsg);
-        if (lastMsg.length > 10 && lastMsg.startsWith(DD_MESSAGE_IMAGE_PREFIX)) {
+      }else {
+        var tmplastMsg = utf8.decode(msgData);
+        if (tmplastMsg.length > 10 && tmplastMsg.startsWith(DD_MESSAGE_IMAGE_PREFIX)) {
           lastMsg = '[图片]';
+        } else {
+          lastMsg = security.decryptText(tmplastMsg);
+          if (lastMsg.length > 10 && lastMsg.startsWith(DD_MESSAGE_IMAGE_PREFIX)) {
+            lastMsg = '[图片]';
+          }
         }
+
       }
     } catch (e) {
       return "";

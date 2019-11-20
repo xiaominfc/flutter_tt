@@ -21,7 +21,7 @@ import '../utils/emoji_utils.dart';
 import '../utils/utils.dart';
 import 'package:toast/toast.dart';
 import './preview_page.dart';
-
+import 'package:opus_recorder/opus_recorder.dart';
 
 class _PanelType {
   static const int Normal = 0;
@@ -227,38 +227,42 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     );
   }
 
-  // 构建内容显示
+  playAudioMsg(MessageEntry msg) async{
+    String path = await imHelper.decodeToAudioFile(msg);
+    print(path);
+    OpusRecorder.playFile(path);
+  }
 
+  // 构建内容显示
   Widget _msgContentBuild(MessageEntry msg) {
     double maxWidth = MediaQuery.of(context).size.width * 0.6;
     String text = imHelper.decodeMsgData(msg.msgData, msg.msgType);
-
     if (text == '[图片]') {
       String url = imHelper.decodeToImage(msg.msgData);
       url = url.substring(10, url.length - 9);
-     // print(url);
+      // print(url);
       ImageProvider  imageProvider = null;
       if(url.startsWith("http")) {
         imageProvider = NetworkImage(url);
       }else {
-         imageProvider = FileImage(File(url));
+        imageProvider = FileImage(File(url));
       }
       return Card(
           child: 
           GestureDetector(
-          onTap:(){
-             navigatePushPage(this.context, PreviewPage(url));        
-          },
-          child:Container(
-              child:FadeInImage(
-                        image: imageProvider,
-                        width: maxWidth,
-                        fit:BoxFit.cover,
-                        placeholder: AssetImage('images/tt_default_image.png'),
-                      ),
-                )
+              onTap:(){
+                navigatePushPage(this.context, PreviewPage(url));        
+              },
+              child:Container(
+                        child:FadeInImage(
+                            image: imageProvider,
+                            width: maxWidth,
+                            fit:BoxFit.cover,
+                            placeholder: AssetImage('images/tt_default_image.png'),
+                        ),
+                    )
           )
-          );
+      );
     } else if (text.startsWith("[牙牙")) {
       //动态表情
       String yayaEmoji = EmojiUtil.yaya(text);
@@ -267,22 +271,41 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
             child: Container(
                 width: 128,
                 child: Image(
-                  image: AssetImage(yayaEmoji),
-                  fit: BoxFit.cover,
-                  width: maxWidth,
+                    image: AssetImage(yayaEmoji),
+                    fit: BoxFit.cover,
+                    width: maxWidth,
                 )));
       }
+    }else if(text == '[语音]') {
+      return Card(
+          child:GestureDetector(
+              onTap:(){
+                 print("play audio");
+                 playAudioMsg(msg);
+              },
+              child:Container(
+                        padding: EdgeInsets.all(10),
+                        child: ConstrainedBox(
+                            constraints: BoxConstraints(maxWidth: maxWidth),
+                            child: Text(text,
+                                maxLines: 10,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context).textTheme.subhead),
+                        ))
+          )
+      );
     }
     return Card(
         child: Container(
             padding: EdgeInsets.all(10),
             child: ConstrainedBox(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: Text(text,
-                  maxLines: 10,
-                  overflow: TextOverflow.ellipsis,
-                  style: Theme.of(context).textTheme.subhead),
-            )));
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Text(text,
+                    maxLines: 10,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.subhead),
+            ))
+    );
   }
 
   //重发消息
