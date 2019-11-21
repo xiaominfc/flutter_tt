@@ -20,6 +20,7 @@ A Flutter project for teamtalk.
 - [x] 动态表情显示以及发送
 - [x] 个人主页
 - [ ] 语音发送
+- [x] 语音消息播放
 - [x] 图片发送
 - [ ] ...
 
