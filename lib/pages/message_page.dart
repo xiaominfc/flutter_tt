@@ -432,15 +432,16 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver i
 
   //implements OpusRecorderInf
   void OnRecordFinished(String filePath, double time){
-    _sendAudio(filePath);
+    _sendAudio(filePath,time);
   }
 
-  void _sendAudio(String path) {
+  void _sendAudio(String path,double audioTime) {
     File file = File(path);
+    print("audioTime:${audioTime}");
     file.readAsBytes().then((data){
       Uint8List head = Uint8List(16);
       var bdata = new ByteData.view(head.buffer);
-      bdata.setInt32(0, data.length);
+      bdata.setInt32(0, (audioTime + 0.5).toInt());
       SessionEntry session = widget.session;
       var audioData = head+data;
       MessageEntry messageEntry =  _appendSendingAudio(audioData);
