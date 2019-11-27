@@ -8,7 +8,6 @@ import 'package:sqflite/sqlite_api.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import './database_helper.dart';
 
-
 class UserEntry extends BaseItem {
 
   String name;
@@ -142,6 +141,19 @@ class MessageEntry extends BaseItem {
   @override
   Map<String, dynamic> toMap() {
     return {'fromId':fromId, 'msgId':msgId, 'msgText':msgText, 'time':time,'sessionId':sessionId,'msgType':msgType};
+  }
+}
+
+class AudioMessageEntry extends MessageEntry {
+  String audioPath;
+  
+  AudioMessageEntry({int msgId,int fromId,List msgData,int sessionId,int time,int msgType}):super(msgId:msgId,fromId:fromId,msgData:msgData,sessionId:sessionId,time:time,msgType:msgType) {
+    
+  }
+  Map<String, dynamic> toMap() { 
+    Map result = super.toMap();
+    result['audioPath'] = audioPath;
+    return result;
   }
 }
 

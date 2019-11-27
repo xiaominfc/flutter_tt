@@ -8,6 +8,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 import 'package:dio/dio.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -37,7 +38,7 @@ class MessagePage extends StatefulWidget {
   createState() => _MessagePageState();
 }
 
-class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
+class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver implements OpusRecorderInf{
   EventBus eventBus = EventBus(sync: true);
   final IMHelper imHelper = IMHelper();
   String chatTitle = "";
@@ -50,6 +51,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   List<MessageEntry> allMsgs = List();
   StreamSubscription subscription;
   bool _showPanel = false;
+  bool _audioAction = false;
   int panelType = _PanelType.Normal;
   //_MessagePageState(this.session);
 
@@ -70,6 +72,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
+    OpusRecorder().registeInf(this);
     SessionEntry session = widget.session;
     if (session.sessionType == IMSeesionType.Person) {
       UserEntry userEntry = imHelper.userMap[session.sessionId];
@@ -381,10 +384,7 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
   }
 
 
-  MessageEntry _appendSendingText(String text) {
-    SessionEntry session = widget.session;
-    MessageEntry messageEntry =
-        imHelper.buildTextMsg(text, session.sessionId, session.sessionType);
+  MessageEntry _formatSendingMsg(MessageEntry messageEntry) {
     messageEntry.sendStatus = IMMsgSendStatus.Sending;
     messageEntry.time = currentUnixTime();
     allMsgs.add(messageEntry);
@@ -395,6 +395,21 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     return messageEntry;
   }
 
+
+  MessageEntry _appendSendingText(String text) {
+    SessionEntry session = widget.session;
+    MessageEntry messageEntry =
+        imHelper.buildTextMsg(text, session.sessionId, session.sessionType);
+    return _formatSendingMsg(messageEntry);    
+  }
+
+  MessageEntry _appendSendingAudio(List audioData) {
+    SessionEntry session = widget.session;
+    MessageEntry messageEntry =
+        imHelper.buildAudioMsg(audioData, session.sessionId, session.sessionType);
+    return _formatSendingMsg(messageEntry);
+  }
+
   //no check
   void _sendText(String text) {
     SessionEntry session = widget.session;
@@ -402,16 +417,47 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
     imHelper
         .sendTextMsg(text, session.sessionId, session.sessionType)
         .then((result) {
-      setState(() {
-        if (result != null) {
-          messageEntry.msgId = result.msgId;
-          messageEntry.sendStatus = IMMsgSendStatus.Ok;
-          session.lastMsg = result.msgText;
-          session.updatedTime = result.time;
-        } else {
-          messageEntry.sendStatus = IMMsgSendStatus.Failed;
-        }
-      });
+          setState(() {
+            if (result != null) {
+              messageEntry.msgId = result.msgId;
+              messageEntry.sendStatus = IMMsgSendStatus.Ok;
+              session.lastMsg = result.msgText;
+              session.updatedTime = result.time;
+            } else {
+              messageEntry.sendStatus = IMMsgSendStatus.Failed;
+            }
+          });
+        });
+  }
+
+  //implements OpusRecorderInf
+  void OnRecordFinished(String filePath, double time){
+    _sendAudio(filePath);
+  }
+
+  void _sendAudio(String path) {
+    File file = File(path);
+    file.readAsBytes().then((data){
+      Uint8List head = Uint8List(16);
+      var bdata = new ByteData.view(head.buffer);
+      bdata.setInt32(0, data.length);
+      SessionEntry session = widget.session;
+      var audioData = head+data;
+      MessageEntry messageEntry =  _appendSendingAudio(audioData);
+      imHelper
+          .sendAudioMsg(audioData, session.sessionId, session.sessionType)
+          .then((result) {
+            setState(() {
+              if (result != null) {
+                messageEntry.msgId = result.msgId;
+                messageEntry.sendStatus = IMMsgSendStatus.Ok;
+                session.lastMsg = result.msgText;
+                session.updatedTime = result.time;
+              } else {
+                messageEntry.sendStatus = IMMsgSendStatus.Failed;
+              }
+            });
+          });
     });
   }
 
@@ -575,9 +621,10 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
       panelType = targetType;
     }
     if (_showPanel) {
+      _audioAction = false;
       if (_isKeyboardOpen) {
         FocusScope.of(context)
-            .requestFocus(new FocusNode()); //show panel after hide keyboard
+            .requestFocus(FocusNode()); //show panel after hide keyboard
         return;
       }
     }
@@ -586,70 +633,99 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver {
 
   Widget _textComposerWidget() {
     return new IconTheme(
-      data: new IconThemeData(color: Colors.blue),
-      child: new Container(
-          decoration: Theme.of(context).platform == TargetPlatform.iOS
-              ? new BoxDecoration(
-                  border:
-                      new Border(top: new BorderSide(color: Colors.grey[200])))
-              : null,
-          margin: EdgeInsets.only(left: 8, right: 8),
-          child: Column(
-            children: <Widget>[
-              Row(
+        data: new IconThemeData(color: Colors.blue),
+        child: new Container(
+            decoration: Theme.of(context).platform == TargetPlatform.iOS
+            ? new BoxDecoration(
+                border:Border(top:BorderSide(color: Colors.grey[200])))
+            : null,
+            margin: EdgeInsets.only(left: 8, right: 8),
+            child: Column(
                 children: <Widget>[
-                  new Flexible(
-                    child: new TextFormField(
-                      decoration:
-                          new InputDecoration.collapsed(hintText: "输入消息"),
-                      controller: textEditingController,
-                      focusNode: _textFocusNode,
-                      textInputAction: TextInputAction.send,
-                      onFieldSubmitted: _handleSubmit,
-                    ),
-                  ),
-                  new Container(
-                    margin: const EdgeInsets.only(left: 2, right: 2),
-                    child: new IconButton(
-                      padding: EdgeInsets.zero,
-                      icon: new Icon(Icons.add_circle_outline),
-                      onPressed: () {
-                        //_showPanel = !_showPanel;
-                        _toggleToPanelType(_PanelType.Tools);
-                      },
-                    ),
-                  ),
-                  new Container(
-                    margin: const EdgeInsets.only(left: 2, right: 2),
-                    child: new IconButton(
-                      padding: EdgeInsets.zero,
-                      icon: new Icon(Icons.insert_emoticon),
-                      onPressed: () {
-                        _toggleToPanelType(_PanelType.Emoji);
-                        //_showPanel = !_showPanel;
-                      },
-                    ),
-                  )
-                ],
-              ),
-              Container(
-                height: _showPanel ? 202 : 0,
-                child: Column(
-                  children: <Widget>[
-                    Divider(
-                      height: 1.0,
-                    ),
-                    _showPanel
-                        ? _buildPanel(200)
-                        : Divider(
-                            height: 0.0,
-                          ),
-                  ],
-                ),
-              )
-            ],
-          )),
-    );
+                  Row(
+                      children: <Widget>[
+                        Container(
+                            margin: const EdgeInsets.only(left: 2, right: 2),
+                            child: IconButton(
+                                padding: EdgeInsets.zero,
+                                icon: Icon(Icons.volume_up),
+                                onPressed: () {
+                                  _audioAction = !_audioAction;
+                                  setState((){});
+                                },
+                            ),
+                        ),
+                        Expanded(
+                            child:_audioAction?GestureDetector(
+                                child:Container(
+                                    child:Center(child:Text('按住说话')),
+                                    decoration: BoxDecoration(
+                                        border: Border.all(
+                                            color: Colors.black,
+                                            width: 0.5,
+                                        ),
+                                        borderRadius:BorderRadius.circular(5.0)
+                                    )
+                                ),
+                                onLongPressStart:(LongPressStartDetails details){
+                                  print("onLongPressStart");
+                                  OpusRecorder.startRecord();
+                                },
+                                onLongPressEnd:(LongPressEndDetails details){
+                                  print("onLongPressEnd");
+                                  OpusRecorder.stopRecord();
+                                },
+                            ):TextFormField(
+                            decoration:
+                            InputDecoration.collapsed(hintText: "输入消息"),
+                            controller: textEditingController,
+                            focusNode: _textFocusNode,
+                            textInputAction: TextInputAction.send,
+                            onFieldSubmitted: _handleSubmit,
+                            ),
+                            ),
+                            Container(
+                                margin: const EdgeInsets.only(left: 2, right: 2),
+                                child: IconButton(
+                                    padding: EdgeInsets.zero,
+                                    icon: Icon(Icons.add_circle_outline),
+                                    onPressed: () {
+                                      //_showPanel = !_showPanel;
+                                      _toggleToPanelType(_PanelType.Tools);
+                                    },
+                                ),
+                            ),
+                            Container(
+                                margin: const EdgeInsets.only(left: 2, right: 2),
+                                child: IconButton(
+                                    padding: EdgeInsets.zero,
+                                    icon: Icon(Icons.insert_emoticon),
+                                    onPressed: () {
+                                      _toggleToPanelType(_PanelType.Emoji);
+                                      //_showPanel = !_showPanel;
+                                    },
+                                ),
+                            )
+                                ],
+                                ),
+                                Container(
+                                    height: _showPanel ? 202 : 0,
+                                    child: Column(
+                                        children: <Widget>[
+                                          Divider(
+                                              height: 1.0,
+                                          ),
+                                          _showPanel
+                                          ? _buildPanel(200)
+                                          : Divider(
+                                              height: 0.0,
+                                          ),
+                                        ],
+                                    ),
+                                )
+                                    ],
+                                    )),
+                                    );
   }
 
   //hide panel and keyboard

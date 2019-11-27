@@ -256,24 +256,45 @@ class IMHelper {
     if (result != null && result.msgList != null) {
       for (int i = 0; i < result.msgList.length; i++) {
         MsgInfo msg = result.msgList[i];
-        var messageEntry = new MessageEntry(
+        var messageEntry = null;
+        if(msg.msgType == MsgType.MSG_TYPE_GROUP_AUDIO || msg.msgType == MsgType.MSG_TYPE_SINGLE_AUDIO) {
+         messageEntry = AudioMessageEntry(
             fromId: msg.fromSessionId,
             msgData: msg.msgData,
             msgId: msg.msgId,
             sessionId: sessionId,
             time: msg.createTime,
             msgType: msg.msgType.value);
+ 
+        }else {
+        messageEntry = MessageEntry(
+            fromId: msg.fromSessionId,
+            msgData: msg.msgData,
+            msgId: msg.msgId,
+            sessionId: sessionId,
+            time: msg.createTime,
+            msgType: msg.msgType.value);
+        }
         msgs.add(messageEntry);
       }
     }
     return msgs;
   }
 
-
+  
   decodeToAudioFile(MessageEntry message) async {
     if(message.msgType != MsgType.MSG_TYPE_GROUP_AUDIO.value &&  message.msgType!= MsgType.MSG_TYPE_SINGLE_AUDIO.value){
       return null;
     }
+    // message must be AudioMessageEntry
+    String audioPath = (message as AudioMessageEntry).audioPath;
+    if(audioPath != null) {
+      File file = new File(audioPath);
+      if(file.existsSync()) {
+        return audioPath;
+      }
+    }
+
     Directory documentsDir = await getApplicationDocumentsDirectory();
     var name = "audio_" + message.time.toString() + ".audio";//名字要考量一下
     String documentsPath = documentsDir.path;
@@ -282,6 +303,7 @@ class IMHelper {
       return file.path;
     }
     file = await file.writeAsBytes(message.msgData.sublist(4));
+    (message as AudioMessageEntry).audioPath = file.path;
     return file.path;
 
   }
@@ -446,4 +468,40 @@ class IMHelper {
     }
     return null;
   }
+
+  buildAudioMsg(List audioData, int sessionId, int sessionType) {
+    int msgType = IMMsgType.MSG_TYPE_GROUP_AUDIO;
+    if (sessionType == IMSeesionType.Person) {
+      msgType = IMMsgType.MSG_TYPE_SINGLE_AUDIO;
+    }
+    MessageEntry msg = AudioMessageEntry(
+        msgId: 0,
+        msgData: audioData,
+        fromId: imClient.userID(),
+        msgType: msgType);
+    return msg;
+  }
+
+  sendAudioMsg(List audioData, int sessionId, int sessionType) async {
+    IMMsgDataAck result;
+    int msgType = IMMsgType.MSG_TYPE_GROUP_AUDIO;
+    if (sessionType == IMSeesionType.Person) {
+      result = await imClient.sendAudioMsg(audioData, sessionId);
+      msgType = IMMsgType.MSG_TYPE_SINGLE_AUDIO;
+    } else {
+      result = await imClient.sendGroupAudioMsg(audioData, sessionId);
+    }
+    if (result != null) {
+      MessageEntry msg = AudioMessageEntry(
+          msgId: result.msgId,
+          msgData: audioData,
+          fromId: result.userId,
+          msgType: msgType);
+      msg.msgText = '[语音]';
+      msg.time = currentUnixTime();
+      return msg;
+    }
+    return null;
+  }
+
 }
