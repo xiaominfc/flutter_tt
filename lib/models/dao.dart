@@ -53,8 +53,12 @@ class UserDao extends PrimaryDao<UserEntry> {
   initTable(Database db, int version) async{
     SharedPreferences prefs = await SharedPreferences.getInstance();
     prefs.setInt('users_lastUpdateTime', 0);
-    await dropTable(db, version);
-    await db.execute('CREATE TABLE '+ tableName() + ' (id INTEGER PRIMARY KEY, name TEXT, avatar TEXT, signInfo TEXT)');
+    return super.initTable(db,version);
+  }
+
+  @override
+  tableStruct(){
+    return '(id INTEGER PRIMARY KEY, name TEXT, avatar TEXT, signInfo TEXT)';
   }
 }
 
@@ -92,15 +96,15 @@ class GroupDao extends PrimaryDao<GroupEntry> {
     return GroupEntry().fromMap(map);
   }
 
-  @override
-  initTable(Database db, int version) async{
-    dropTable(db, version);
-    await db.execute('CREATE TABLE '+tableName() + ' (id INTEGER PRIMARY KEY, name TEXT, avatar TEXT, version INTEGER, shieldStatus INTEGER)');
-  }
-
+  
   @override
   String tableName() {
     return "im_group";
+  }
+
+  @override
+  tableStruct(){
+    return '(id INTEGER PRIMARY KEY, name TEXT, avatar TEXT, version INTEGER, shieldStatus INTEGER)';
   }
 }
 
@@ -207,14 +211,13 @@ class SessionDao extends PrimaryDao<SessionEntry>{
   }
 
   @override
-  initTable(Database db, int version) async{
-    dropTable(db, version);
-    await db.execute('CREATE TABLE '+tableName() + ' (sessionKey TEXT PRIMARY KEY, sessionId INTEGER, sessionType INTEGER, lastMsg TEXT, updatedTime INTEGER)');
+  String tableName() {
+    return "im_session";
   }
 
   @override
-  String tableName() {
-    return "im_session";
+  tableStruct() {
+    return '(sessionKey TEXT PRIMARY KEY, sessionId INTEGER, sessionType INTEGER, lastMsg TEXT, updatedTime INTEGER)';
   }
 
 }

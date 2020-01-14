@@ -142,6 +142,14 @@ abstract class PrimaryDao<T extends BaseItem>  extends BaseDao{
     return null;
   }
 
+  String tableStruct();
+
+  @override
+  initTable(Database db, int version) async{
+    dropTable(db, version);
+    await db.execute('CREATE TABLE '+tableName() + ' ' + tableStruct());
+  }
+
   Future<int>  delete(var id) async{
     Database db = await DatabaseHelper.instance.database;
     return await db.delete(tableName(), where: primarykey() + ' = ?', whereArgs: [id]);
