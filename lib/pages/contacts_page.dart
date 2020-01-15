@@ -10,6 +10,8 @@ import '../models/dao.dart';
 import '../models/helper.dart';
 import './message_page.dart';
 import '../utils/utils.dart';
+import './userinfo_page.dart';
+
 
 class SelfToolsBar extends StatelessWidget {
   final TextStyle textStyle = TextStyle(fontSize: 16, color: Colors.white);
@@ -212,7 +214,9 @@ class _ContactsPageState extends State<ContactsPage> {
         entry = SessionEntry(user.id, IMSeesionType.Person);
         //entry.sessionType = IMSeesionType.Person;
       }
-      navigatePushPage(this.context, MessagePage(entry));
+      navigatePushPage(this.context, UserInfoPage(user));
+
+      //navigatePushPage(this.context, MessagePage(entry));
     }
   }
 
