@@ -12,7 +12,6 @@ import './message_page.dart';
 import '../utils/utils.dart';
 import './userinfo_page.dart';
 
-
 class SelfToolsBar extends StatelessWidget {
   final TextStyle textStyle = TextStyle(fontSize: 16, color: Colors.white);
   double radius = 16.0;
@@ -136,12 +135,13 @@ class _ContactsPageState extends State<ContactsPage> {
             children: <Widget>[
               Container(
                 margin: const EdgeInsets.only(right: 16.0),
-                width: 48,
-                height: 48,
                 child: ClipOval(
                   child: FadeInImage(
                     image: NetworkImage(avatar),
                     placeholder: AssetImage('images/avatar_default.png'),
+                    fit: BoxFit.fitWidth,
+                    width: 48,
+                    height: 48,
                   ),
                 ),
               ),

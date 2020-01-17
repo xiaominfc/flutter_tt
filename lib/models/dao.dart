@@ -13,12 +13,14 @@ class UserEntry extends BaseItem {
   String name;
   String avatar;
   int id;
+  String email;
+  String phone;
   String signInfo;
-  UserEntry({this.id,this.name,this.avatar,this.signInfo});
+  UserEntry({this.id,this.name,this.avatar,this.signInfo,this.email, this.phone});
 
   @override
   Map<String, dynamic> toMap() {
-    return {'id':id, 'name':name, 'avatar':avatar, 'signInfo':signInfo};
+    return {'id':id, 'name':name, 'avatar':avatar, 'signInfo':signInfo,'email':email, 'phone':phone};
   }
   @override
   fromMap(Map<String, dynamic> map){
@@ -26,6 +28,8 @@ class UserEntry extends BaseItem {
     this.name = map['name'];
     this.avatar = map['avatar'];
     this.signInfo = map['signInfo'];
+    this.email = map['email'];
+    this.phone = map['phone'];
     return this;
   }
 
@@ -58,7 +62,7 @@ class UserDao extends PrimaryDao<UserEntry> {
 
   @override
   tableStruct(){
-    return '(id INTEGER PRIMARY KEY, name TEXT, avatar TEXT, signInfo TEXT)';
+    return '(id INTEGER PRIMARY KEY, name TEXT, avatar TEXT, signInfo TEXT, email TEXT, phone TEXT)';
   }
 }
 

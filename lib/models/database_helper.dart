@@ -16,7 +16,7 @@ import 'package:path_provider/path_provider.dart';
 class DatabaseHelper {
 
   static final _databaseName = "flutter_tt.db";
-  static final _databaseVersion = 5;
+  static final _databaseVersion = 6;
   static Database _database;
 
   DatabaseHelper._internal();

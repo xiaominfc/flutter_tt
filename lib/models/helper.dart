@@ -200,7 +200,10 @@ class IMHelper {
             id: userInfo.userId,
             name: userInfo.userNickName,
             avatar: userInfo.avatarUrl,
-            signInfo: userInfo.signInfo);
+            signInfo: userInfo.signInfo,
+            email:userInfo.email,
+            phone:userInfo.userTel
+            );
         userDao.updateOrInsert(userEntry);
         userMap[userEntry.id] = userEntry;
       });

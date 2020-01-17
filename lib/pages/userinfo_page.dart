@@ -30,14 +30,9 @@ class _UserInfoPageState extends State<UserInfoPage> {
       SessionEntry entry = imHelper.getSessionBySessionKey(sessionKey);
       if (entry == null) {
         entry = SessionEntry(user.id, IMSeesionType.Person);
-        //entry.sessionType = IMSeesionType.Person;
       }
-      //navigatePushPage(this.context, UserInfoPage(user));
-
       navigatePushPage(this.context, MessagePage(entry));
     }
-
-
   }
 
   Widget build(BuildContext context) {
@@ -62,7 +57,24 @@ class _UserInfoPageState extends State<UserInfoPage> {
                 Text('昵称:' + userEntry.name)
               ])
               ),
-          
+          Container(
+              padding: EdgeInsets.all(10),
+              child:Row(children:[
+                Text('邮箱:' + userEntry.email)
+              ])
+              ),
+          Container(
+              padding: EdgeInsets.all(10),
+              child:Row(children:[
+                Text('电话:' + userEntry.phone)
+              ])
+              ),
+          Container(
+              padding: EdgeInsets.all(10),
+              child:Row(children:[
+                Text('心情:' + userEntry.signInfo)
+              ])
+              ),
           Container(
               padding: EdgeInsets.all(10),
               child: Material(
