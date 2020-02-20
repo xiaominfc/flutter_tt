@@ -219,10 +219,12 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver i
 
   Widget _avatar(UserEntry fromUser, edge) {
     return Container(
-      width: 36,
       margin: edge,
       child: ClipOval(
         child: FadeInImage(
+          width:36,
+          height:36,
+          fit:BoxFit.fitWidth,
           image: NetworkImage(fromUser.avatar),
           placeholder: AssetImage('images/avatar_default.png'),
         ),
