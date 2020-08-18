@@ -14,10 +14,9 @@ import 'message_page.dart';
 import '../models/helper.dart';
 import '../utils/utils.dart';
 
-
 class ChatPage extends StatefulWidget {
   @override
-  _ChatPageState createState() =>_ChatPageState();
+  _ChatPageState createState() => _ChatPageState();
 }
 
 class _ChatPageState extends State<ChatPage> {
@@ -35,9 +34,7 @@ class _ChatPageState extends State<ChatPage> {
       });
       force = false;
     }
-    imHelper
-        .loadSessionsFromServer(force: force)
-        .then((result) async {
+    imHelper.loadSessionsFromServer(force: force).then((result) async {
       if (result > 0) {
         _sessions = await imHelper.loadLocalSessions();
       }
@@ -46,23 +43,28 @@ class _ChatPageState extends State<ChatPage> {
     });
   }
 
+  void sortSessions(){
+    if(_sessions != null) {
+      _sessions.sort((left,right)=>right.updatedTime.compareTo(left.updatedTime));
+    }
+  }
 
-  void _onEvent(NewMsgEvent event) async{
-
-    if(imHelper.showSessionEntry == null || event.sessionKey != imHelper.showSessionEntry.sessionKey) {
-        SessionEntry sessionEntry = imHelper.getSessionBySessionKey(event.sessionKey);
-        if(sessionEntry != null) {
-          sessionEntry.updatedTime = event.msg.time;
-          sessionEntry.lastMsg = imHelper.decodeMsgData(event.msg.msgData, event.msg.msgType);
-          sessionEntry.unreadCnt = sessionEntry.unreadCnt + 1;
-        }else {
-          MessageEntry msg = event.msg;
-          sessionEntry = await imHelper.buildAndSaveSessionForNewMsg(msg);
-          _sessions.insert(0, sessionEntry);
-        }
-        setState(() {
-            
-        });
+  void _onEvent(NewMsgEvent event) async {
+    if (imHelper.showSessionEntry == null ||
+        event.sessionKey != imHelper.showSessionEntry.sessionKey) {
+      SessionEntry sessionEntry =
+          imHelper.getSessionBySessionKey(event.sessionKey);
+      if (sessionEntry != null) {
+        sessionEntry.updatedTime = event.msg.time;
+        sessionEntry.lastMsg =
+            imHelper.decodeMsgData(event.msg.msgData, event.msg.msgType);
+        sessionEntry.unreadCnt = sessionEntry.unreadCnt + 1;
+      } else {
+        MessageEntry msg = event.msg;
+        sessionEntry = await imHelper.buildAndSaveSessionForNewMsg(msg);
+        _sessions.insert(0, sessionEntry);
+      }
+      setState(() {});
     }
   }
 
@@ -76,7 +78,7 @@ class _ChatPageState extends State<ChatPage> {
   }
 
   @override
-  void dispose(){
+  void dispose() {
     subscription.cancel();
     super.dispose();
   }
@@ -85,7 +87,11 @@ class _ChatPageState extends State<ChatPage> {
   void deactivate() {
     super.deactivate();
   }
-  
+
+  @override
+  void didUpdateWidget(ChatPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+  }
 
   _updateUnReadCnt() async {
     await IMHelper.defaultInstance().requestUnReadCnt();
@@ -95,35 +101,39 @@ class _ChatPageState extends State<ChatPage> {
     navigatePushPage(this.context, MessagePage(_sessions[position]));
   }
 
-
-  Widget buildTailWidget(int unReadCnt, int updateTime){
+  Widget buildTailWidget(int unReadCnt, int updateTime) {
     DateTime date = new DateTime.fromMillisecondsSinceEpoch(updateTime * 1000);
-    return  Row(
-        mainAxisSize:MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.end,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Text(dateFormat(date,"")),
-          unReadCnt > 0 ? Container(
-              child: Center(child: Text(unReadCnt.toString(),style: TextStyle(color: Colors.white))),
-              width: 20,
-              decoration: new BoxDecoration(
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      mainAxisAlignment: MainAxisAlignment.end,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: <Widget>[
+        Text(dateFormat(date, "")),
+        unReadCnt > 0
+            ? Container(
+                child: Center(
+                    child: Text(unReadCnt.toString(),
+                        style: TextStyle(color: Colors.white))),
+                width: 20,
+                decoration: new BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.red,
-              ),
-          )
-          : Icon(
-              Icons.arrow_forward_ios,
-          )
-        ],
+                ),
+              )
+            : Icon(
+                Icons.arrow_forward_ios,
+              )
+      ],
     );
-
   }
 
   @override
   Widget build(BuildContext context) {
+    sortSessions();
     return Scaffold(
-        appBar: AppBar(title: const Text('消息',
+        appBar: AppBar(
+            title: const Text(
+          '消息',
           style: TextStyle(
             fontStyle: FontStyle.normal,
           ),
@@ -135,11 +145,11 @@ class _ChatPageState extends State<ChatPage> {
               SessionEntry sessionEntry = _sessions[position];
               var avatar;
               var name;
-              if(sessionEntry.sessionType == IMSeesionType.Person){
+              if (sessionEntry.sessionType == IMSeesionType.Person) {
                 UserEntry user = imHelper.userMap[sessionEntry.sessionId];
                 avatar = user.avatar;
                 name = user.name;
-              }else {
+              } else {
                 GroupEntry group = imHelper.groupMap[sessionEntry.sessionId];
                 avatar = group.avatar;
                 name = group.name;
@@ -151,18 +161,22 @@ class _ChatPageState extends State<ChatPage> {
                   onTap: () => _onTap(position),
                   child: ListTile(
                     leading: ClipOval(
-                      child: avatar==null?Image.asset('images/avatar_default.png'):FadeInImage(
-                        image: NetworkImage(avatar),
-                        width: 56,
-                        height: 56,
-                        fit:BoxFit.fitWidth,
-                        placeholder: AssetImage('images/avatar_default.png'),
-                      ),
+                      child: avatar == null
+                          ? Image.asset('images/avatar_default.png')
+                          : FadeInImage(
+                              image: NetworkImage(avatar),
+                              width: 56,
+                              height: 56,
+                              fit: BoxFit.fitWidth,
+                              placeholder:
+                                  AssetImage('images/avatar_default.png'),
+                            ),
                     ),
-                    title: Text(name??"",
+                    title: Text(name ?? "",
                         style: Theme.of(context).textTheme.subhead),
                     subtitle: new Text(sessionEntry.lastMsg, maxLines: 1),
-                    trailing: buildTailWidget(unReadCnt, sessionEntry.updatedTime),
+                    trailing:
+                        buildTailWidget(unReadCnt, sessionEntry.updatedTime),
                   ),
                 ),
                 Divider(

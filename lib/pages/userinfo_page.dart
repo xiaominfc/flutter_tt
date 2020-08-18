@@ -10,8 +10,6 @@ import './message_page.dart';
 import '../models/helper.dart';
 import '../utils/utils.dart';
 
-
-
 class UserInfoPage extends StatefulWidget {
   final UserEntry user;
   UserInfoPage(this.user);
