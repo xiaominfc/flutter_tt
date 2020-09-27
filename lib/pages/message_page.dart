@@ -546,9 +546,8 @@ class _MessagePageState extends State<MessagePage> with WidgetsBindingObserver i
 
     var dio = new Dio();
     String fileName = file.path.split("/").last;
-    FormData formData = new FormData.from({
-      "file": new UploadFileInfo(
-          file, fileName)
+    FormData formData = new FormData.fromMap({
+      "file": await MultipartFile.fromFile(file.path, filename:fileName)
     });
     var response = await dio.post("http://msfs.xiaominfc.com/", data: formData);
     if (response.statusCode == 200) {

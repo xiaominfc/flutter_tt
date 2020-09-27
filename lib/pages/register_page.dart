@@ -113,9 +113,9 @@ class _RegisterPageState extends State<RegisterPage> {
     var imageFile = await ImagePicker.pickImage(source: ImageSource.gallery);
     var dio = new Dio();
     String fileName = imageFile.path.split("/").last;
-    FormData formData = new FormData.from({
-      "file": new UploadFileInfo(
-          imageFile, fileName)
+    FormData formData = new FormData.fromMap({
+      "file": MultipartFile.fromFileSync(
+          imageFile.path, filename:fileName)
     });
     var response = await dio.post("http://msfs.xiaominfc.com/", data: formData);
     if (response.statusCode == 200) {
